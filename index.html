@@ -13,18 +13,28 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- PWA Meta Tags & Dynamic Native App Icon -->
+  <meta name="theme-color" content="#09090b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Diet Logbook" />
+  <link id="dynamic-favicon" rel="icon" type="image/png" />
+  <link id="dynamic-apple-icon" rel="apple-touch-icon" />
+  <link id="dynamic-manifest" rel="manifest" />
+
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            bgMain: '#0b0f17',
-            bgCard: '#151b26',
-            bgElevated: '#1c2433',
-            borderSubtle: '#263042',
+            bgMain: '#09090b',
+            bgCard: '#121215',
+            bgElevated: '#18181b',
+            borderSubtle: '#27272a',
             emeraldAccent: '#10b981',
-            blueAccent: '#3b82f6',
+            skyAccent: '#0ea5e9',
+            violetAccent: '#8b5cf6',
             amberAccent: '#f59e0b',
             roseAccent: '#f43f5e'
           },
@@ -39,8 +49,8 @@
 
   <style>
     body {
-      background-color: #0b0f17;
-      color: #e2e8f0;
+      background-color: #09090b;
+      color: #f4f4f5;
       font-family: 'Inter', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
@@ -48,25 +58,23 @@
       font-family: 'JetBrains Mono', monospace;
       font-variant-numeric: tabular-nums;
     }
-    /* Custom scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #0b0f17;
+      background: #09090b;
     }
     ::-webkit-scrollbar-thumb {
-      background: #263042;
+      background: #27272a;
       border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #3b4963;
+      background: #3f3f46;
     }
-    /* Checkbox animation */
     .meal-card-checked {
-      border-color: rgba(16, 185, 129, 0.45) !important;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.07) 0%, rgba(21, 27, 38, 0.95) 100%) !important;
+      border-color: rgba(16, 185, 129, 0.5) !important;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(18, 18, 21, 0.98) 100%) !important;
     }
     .progress-transition {
       transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -79,297 +87,280 @@
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- TOP HEADER & NAVIGATION -->
-  <header class="sticky top-0 z-30 bg-bgMain/90 backdrop-blur-md border-b border-borderSubtle">
-    <div class="max-w-4xl mx-auto px-4 py-3">
+  <header class="sticky top-0 z-30 bg-bgMain/95 backdrop-blur-md border-b border-borderSubtle">
+    <div class="max-w-5xl mx-auto px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <!-- Brand & User Badge -->
+        <!-- Brand & Title -->
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
             <i data-lucide="notebook-tabs" class="w-5 h-5"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">DIET LOGBOOK</h1>
-              <span class="text-[11px] font-mono-num uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">Déficit</span>
+              <h1 id="app-main-title" class="text-sm sm:text-base font-bold tracking-tight text-white font-mono-num">
+                DIET LOGBOOK // DÉFICIT 2050 KCAL
+              </h1>
             </div>
-            <p id="header-profile-summary" class="text-xs text-slate-400 font-mono-num">
-              22a • 1,75m • <span id="header-current-weight" class="text-slate-200 font-semibold">81,0 kg</span>
+            <p class="text-xs text-zinc-400 font-mono-num">
+              Masc • 22a • 1,75m • Peso Atual: <span id="header-current-weight" class="text-zinc-100 font-semibold">81,0 kg</span>
             </p>
           </div>
         </div>
 
-        <!-- Quick Actions: Metas & Backup JSON -->
-        <div class="flex items-center gap-1.5 sm:gap-2">
-          <button onclick="openGoalsModal()" class="px-2.5 py-1.5 rounded-lg bg-bgCard hover:bg-bgElevated border border-borderSubtle text-xs font-medium text-slate-300 flex items-center gap-1.5 transition" title="Editar Metas e Perfil">
-            <i data-lucide="SlidersHorizontal" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span class="hidden sm:inline">Editar Metas</span>
+        <!-- Date Switcher + JSON Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Date Controls -->
+          <div class="flex items-center gap-1 bg-bgCard border border-borderSubtle rounded-xl p-1">
+            <button onclick="changeDate(-1)" class="p-1.5 rounded-lg hover:bg-bgElevated text-zinc-300 transition" title="Dia anterior">
+              <i data-lucide="ChevronLeft" class="w-4 h-4"></i>
+            </button>
+            <div class="flex items-center gap-1.5 px-2">
+              <i data-lucide="Calendar" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <input type="date" id="date-picker" onchange="jumpToDate(this.value)" class="bg-transparent text-xs font-mono-num font-semibold text-white focus:outline-none cursor-pointer" />
+              <span id="date-label-badge" class="text-[10px] font-mono-num uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Hoje</span>
+            </div>
+            <button onclick="changeDate(1)" class="p-1.5 rounded-lg hover:bg-bgElevated text-zinc-300 transition" title="Próximo dia">
+              <i data-lucide="ChevronRight" class="w-4 h-4"></i>
+            </button>
+            <button onclick="goToToday()" id="btn-go-today" class="hidden text-[10px] font-mono-num px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition">
+              Hoje
+            </button>
+          </div>
+
+          <!-- Backup JSON Buttons -->
+          <button onclick="exportBackupJSON()" class="px-2.5 py-2 rounded-xl bg-bgCard hover:bg-bgElevated border border-borderSubtle text-xs font-mono-num font-medium text-zinc-300 flex items-center gap-1.5 transition" title="Exportar JSON">
+            <i data-lucide="Download" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span class="hidden md:inline">Exportar JSON</span>
           </button>
-          <button onclick="exportBackupJSON()" class="px-2.5 py-1.5 rounded-lg bg-bgCard hover:bg-bgElevated border border-borderSubtle text-xs font-medium text-slate-300 flex items-center gap-1.5 transition" title="Exportar Backup JSON">
-            <i data-lucide="Download" class="w-3.5 h-3.5 text-blue-400"></i>
-            <span class="hidden sm:inline">Exportar</span>
-          </button>
-          <label class="px-2.5 py-1.5 rounded-lg bg-bgCard hover:bg-bgElevated border border-borderSubtle text-xs font-medium text-slate-300 flex items-center gap-1.5 transition cursor-pointer" title="Importar Backup JSON">
-            <i data-lucide="Upload" class="w-3.5 h-3.5 text-amber-400"></i>
-            <span class="hidden sm:inline">Importar</span>
+          <label class="px-2.5 py-2 rounded-xl bg-bgCard hover:bg-bgElevated border border-borderSubtle text-xs font-mono-num font-medium text-zinc-300 flex items-center gap-1.5 transition cursor-pointer" title="Importar JSON">
+            <i data-lucide="Upload" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span class="hidden md:inline">Importar JSON</span>
             <input type="file" id="import-json-input" accept=".json" class="hidden" onchange="importBackupJSON(event)" />
           </label>
         </div>
       </div>
 
-      <!-- Date Selector & 7-Day Consistency Bar -->
-      <div class="mt-3 pt-3 border-t border-borderSubtle/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <!-- Date Controls -->
-        <div class="flex items-center justify-between sm:justify-start gap-2 bg-bgCard border border-borderSubtle rounded-xl p-1">
-          <button onclick="changeDate(-1)" class="p-1.5 rounded-lg hover:bg-bgElevated text-slate-300 transition" title="Dia anterior">
-            <i data-lucide="ChevronLeft" class="w-4 h-4"></i>
-          </button>
-          <div class="flex items-center gap-2 px-2">
-            <i data-lucide="Calendar" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <input type="date" id="date-picker" onchange="jumpToDate(this.value)" class="bg-transparent text-xs sm:text-sm font-mono-num font-semibold text-white focus:outline-none cursor-pointer" />
-            <span id="date-label-badge" class="text-[10px] font-mono-num uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">Hoje</span>
-          </div>
-          <button onclick="changeDate(1)" class="p-1.5 rounded-lg hover:bg-bgElevated text-slate-300 transition" title="Próximo dia">
-            <i data-lucide="ChevronRight" class="w-4 h-4"></i>
-          </button>
-          <button onclick="goToToday()" id="btn-go-today" class="hidden text-[11px] font-mono-num px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition">
-            Ir p/ Hoje
-          </button>
-        </div>
-
-        <!-- 7-Day Consistency Strip -->
-        <div class="flex items-center justify-between sm:justify-end gap-1.5" id="seven-day-strip">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
+      <!-- 3 MAIN NAVIGATION TABS -->
+      <nav class="mt-3 grid grid-cols-3 gap-1.5 bg-bgCard p-1.5 rounded-xl border border-borderSubtle">
+        <button onclick="switchTab('diario')" id="tab-btn-diario" class="py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition bg-emerald-500 text-zinc-950 shadow">
+          <i data-lucide="CheckSquare" class="w-4 h-4"></i>
+          <span>Diário (Hoje)</span>
+        </button>
+        <button onclick="switchTab('marmitas')" id="tab-btn-marmitas" class="py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-zinc-300 hover:bg-bgElevated">
+          <i data-lucide="ShoppingBag" class="w-4 h-4"></i>
+          <span>Marmitas & Compras</span>
+        </button>
+        <button onclick="switchTab('historico')" id="tab-btn-historico" class="py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-zinc-300 hover:bg-bgElevated">
+          <i data-lucide="LineChart" class="w-4 h-4"></i>
+          <span>Peso & Histórico</span>
+        </button>
+      </nav>
     </div>
   </header>
 
   <!-- MAIN CONTENT CONTAINER -->
-  <main class="max-w-4xl mx-auto px-4 pt-4 space-y-5">
-
-    <!-- REAL-TIME PROGRESS DASHBOARD (ALWAYS VISIBLE) -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <!-- Calories Card -->
-      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <i data-lucide="Flame" class="w-4 h-4 text-emerald-400"></i>
-            Calorias do Dia
-          </span>
-          <span id="kcal-status-badge" class="text-[11px] font-mono-num px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-borderSubtle">
-            Restam 2050 kcal
-          </span>
-        </div>
-
-        <div class="my-2.5 flex items-baseline justify-between">
-          <div>
-            <span id="kcal-current" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0</span>
-            <span class="text-xs font-mono-num text-slate-400">/ <span id="kcal-target">2050</span> kcal</span>
-          </div>
-          <span id="kcal-percent" class="text-xs font-mono-num font-semibold text-emerald-400">0%</span>
-        </div>
-
-        <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle/60">
-          <div id="kcal-bar" class="h-full bg-emerald-500 rounded-full progress-transition" style="width: 0%"></div>
-        </div>
-
-        <div class="mt-2.5 pt-2 border-t border-borderSubtle/50 flex items-center justify-between text-[11px] font-mono-num text-slate-400">
-          <span>Carb: <strong id="carb-current" class="text-slate-200">0g</strong></span>
-          <span>Gord: <strong id="fat-current" class="text-slate-200">0g</strong></span>
-          <span>Refeições: <strong id="meals-checked-count" class="text-emerald-400">0/4</strong></span>
-        </div>
-      </div>
-
-      <!-- Protein Card -->
-      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <i data-lucide="Dumbbell" class="w-4 h-4 text-blue-400"></i>
-            Proteína (Meta ~2g/kg)
-          </span>
-          <span id="prot-per-kg-badge" class="text-[11px] font-mono-num px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30">
-            0.0 g/kg
-          </span>
-        </div>
-
-        <div class="my-2.5 flex items-baseline justify-between">
-          <div>
-            <span id="prot-current" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0</span>
-            <span class="text-xs font-mono-num text-slate-400">/ <span id="prot-target">170</span>g</span>
-          </div>
-          <span id="prot-percent" class="text-xs font-mono-num font-semibold text-blue-400">0%</span>
-        </div>
-
-        <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle/60">
-          <div id="prot-bar" class="h-full bg-blue-500 rounded-full progress-transition" style="width: 0%"></div>
-        </div>
-
-        <div class="mt-2.5 pt-2 border-t border-borderSubtle/50 flex items-center justify-between text-[11px] font-mono-num text-slate-400">
-          <span>Whey Soldiers 70%: <strong class="text-slate-200">28g P/dose</strong></span>
-          <span id="prot-remaining-text">Faltam 170g</span>
-        </div>
-      </div>
-
-      <!-- Water Tracker Card -->
-      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <i data-lucide="Droplets" class="w-4 h-4 text-cyan-400"></i>
-            Hidratação Diária
-          </span>
-          <button onclick="resetWater()" class="text-[11px] font-mono-num text-slate-400 hover:text-rose-400 transition" title="Zerar água de hoje">
-            Resetar
-          </button>
-        </div>
-
-        <div class="my-2 flex items-baseline justify-between">
-          <div>
-            <span id="water-current" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0</span>
-            <span class="text-xs font-mono-num text-slate-400">/ <span id="water-target">3000</span> ml</span>
-          </div>
-          <span id="water-percent" class="text-xs font-mono-num font-semibold text-cyan-400">0%</span>
-        </div>
-
-        <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle/60 mb-2.5">
-          <div id="water-bar" class="h-full bg-cyan-500 rounded-full progress-transition" style="width: 0%"></div>
-        </div>
-
-        <!-- Quick Water Buttons -->
-        <div class="grid grid-cols-4 gap-1.5">
-          <button onclick="addWater(200)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-cyan-500/20 border border-borderSubtle hover:border-cyan-500/40 text-xs font-mono-num font-semibold text-cyan-300 transition active:scale-95">
-            +200
-          </button>
-          <button onclick="addWater(300)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-cyan-500/20 border border-borderSubtle hover:border-cyan-500/40 text-xs font-mono-num font-semibold text-cyan-300 transition active:scale-95">
-            +300
-          </button>
-          <button onclick="addWater(500)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-cyan-500/20 border border-borderSubtle hover:border-cyan-500/40 text-xs font-mono-num font-semibold text-cyan-300 transition active:scale-95">
-            +500
-          </button>
-          <button onclick="addWater(-200)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-rose-500/20 border border-borderSubtle hover:border-rose-500/40 text-xs font-mono-num font-semibold text-slate-400 hover:text-rose-300 transition active:scale-95">
-            -200
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- NAVIGATION TABS -->
-    <nav class="flex items-center gap-1.5 bg-bgCard p-1.5 rounded-2xl border border-borderSubtle">
-      <button onclick="switchTab('diario')" id="tab-btn-diario" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition bg-emerald-500 text-slate-950 shadow">
-        <i data-lucide="CheckSquare" class="w-4 h-4"></i>
-        <span>Diário & Refeições</span>
-      </button>
-      <button onclick="switchTab('treino')" id="tab-btn-treino" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-300 hover:bg-bgElevated">
-        <i data-lucide="Activity" class="w-4 h-4"></i>
-        <span>Treino & Peso</span>
-      </button>
-      <button onclick="switchTab('marmitas')" id="tab-btn-marmitas" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-300 hover:bg-bgElevated">
-        <i data-lucide="ShoppingBag" class="w-4 h-4"></i>
-        <span>Marmitas & Compras</span>
-      </button>
-    </nav>
+  <main class="max-w-5xl mx-auto px-4 pt-5 space-y-6">
 
     <!-- ========================================== -->
-    <!-- TAB 1: DIÁRIO & REFEIÇÕES                  -->
+    <!-- TAB 1: DIÁRIO (HOJE)                       -->
     <!-- ========================================== -->
-    <section id="tab-content-diario" class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            Checklist de Refeições do Dia
-          </h2>
-          <p class="text-xs text-slate-400">Marque as refeições concluídas ou troque a proteína da marmita em 1 clique.</p>
+    <section id="tab-content-diario" class="space-y-6">
+
+      <!-- 1. TOP SUMMARY DASHBOARD -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <!-- Calorias Consumidas -->
+        <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+              <i data-lucide="Flame" class="w-4 h-4 text-emerald-400"></i>
+              Calorias Consumidas
+            </span>
+            <span id="kcal-status-badge" class="text-[11px] font-mono-num px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+              Restam 2050 kcal
+            </span>
+          </div>
+
+          <div class="my-2.5 flex items-baseline justify-between">
+            <div>
+              <span id="kcal-current" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0</span>
+              <span class="text-xs font-mono-num text-zinc-400">/ <span id="kcal-target">2050</span> kcal</span>
+            </div>
+            <span id="kcal-percent" class="text-xs font-mono-num font-semibold text-emerald-400">0%</span>
+          </div>
+
+          <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle">
+            <div id="kcal-bar" class="h-full bg-emerald-500 rounded-full progress-transition" style="width: 0%"></div>
+          </div>
+
+          <div class="mt-2.5 pt-2 border-t border-borderSubtle/70 flex items-center justify-between text-[11px] font-mono-num text-zinc-400">
+            <span>Checklist: <strong id="meals-checked-count" class="text-emerald-400">0/4 refeições</strong></span>
+            <span>Déficit Alvo: <strong class="text-zinc-200">~500 kcal</strong></span>
+          </div>
         </div>
-        <button onclick="checkAllMealsToday()" class="text-xs font-mono-num px-3 py-1.5 rounded-xl bg-bgCard hover:bg-bgElevated border border-borderSubtle text-emerald-400 transition">
-          Marcar Todas
-        </button>
+
+        <!-- Proteínas -->
+        <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+              <i data-lucide="ShieldCheck" class="w-4 h-4 text-sky-400"></i>
+              Proteínas Diárias
+            </span>
+            <span id="prot-per-kg-badge" class="text-[11px] font-mono-num px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-300 border border-sky-500/30">
+              0.0g/kg (Alvo ~2.1g/kg)
+            </span>
+          </div>
+
+          <div class="my-2.5 flex items-baseline justify-between">
+            <div>
+              <span id="prot-current" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0</span>
+              <span class="text-xs font-mono-num text-zinc-400">/ <span id="prot-target">170</span> g</span>
+            </div>
+            <span id="prot-percent" class="text-xs font-mono-num font-semibold text-sky-400">0%</span>
+          </div>
+
+          <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle">
+            <div id="prot-bar" class="h-full bg-sky-500 rounded-full progress-transition" style="width: 0%"></div>
+          </div>
+
+          <div class="mt-2.5 pt-2 border-t border-borderSubtle/70 flex items-center justify-between text-[11px] font-mono-num text-zinc-400">
+            <span>Whey + Leite: <strong class="text-zinc-200">34.5g P</strong></span>
+            <span id="prot-remaining-text">Faltam 170g</span>
+          </div>
+        </div>
+
+        <!-- Meta de Água -->
+        <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+              <i data-lucide="Droplets" class="w-4 h-4 text-sky-400"></i>
+              Meta de Água
+            </span>
+            <button onclick="resetWater()" class="text-[11px] font-mono-num px-2 py-0.5 rounded bg-bgElevated hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 border border-borderSubtle transition">
+              Zerar
+            </button>
+          </div>
+
+          <div class="my-2 flex items-baseline justify-between">
+            <div>
+              <span id="water-current" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0</span>
+              <span class="text-xs font-mono-num text-zinc-400">/ <span id="water-target">3000</span> ml</span>
+            </div>
+            <span id="water-percent" class="text-xs font-mono-num font-semibold text-sky-400">0%</span>
+          </div>
+
+          <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle mb-2.5">
+            <div id="water-bar" class="h-full bg-sky-500 rounded-full progress-transition" style="width: 0%"></div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1.5">
+            <button onclick="addWater(200)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-sky-500/20 border border-borderSubtle hover:border-sky-500/40 text-xs font-mono-num font-semibold text-sky-300 transition active:scale-95">
+              +200ml
+            </button>
+            <button onclick="addWater(300)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-sky-500/20 border border-borderSubtle hover:border-sky-500/40 text-xs font-mono-num font-semibold text-sky-300 transition active:scale-95">
+              +300ml
+            </button>
+            <button onclick="addWater(500)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-sky-500/20 border border-borderSubtle hover:border-sky-500/40 text-xs font-mono-num font-semibold text-sky-300 transition active:scale-95">
+              +500ml
+            </button>
+            <button onclick="addWater(-200)" class="py-1.5 px-2 rounded-lg bg-bgElevated hover:bg-rose-500/20 border border-borderSubtle hover:border-rose-500/40 text-xs font-mono-num font-semibold text-zinc-400 hover:text-rose-300 transition active:scale-95">
+              -200ml
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- MEALS CONTAINER -->
-      <div id="meals-list-container" class="space-y-3">
-        <!-- Populated dynamically via JS -->
+      <!-- 2. CHECKLIST DE REFEIÇÕES (4 REFEIÇÕES + SELETORES DUPLOS) -->
+      <div class="space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="Utensils" class="w-4 h-4 text-emerald-400"></i>
+              Checklist de Refeições do Dia
+            </h2>
+            <p class="text-xs text-zinc-400">Troque a Proteína (8 opções) e o Carboidrato (4 opções) das marmitas em 1 clique.</p>
+          </div>
+          <button onclick="checkAllMealsToday()" class="text-xs font-mono-num px-3 py-1.5 rounded-xl bg-bgCard hover:bg-bgElevated border border-borderSubtle text-emerald-400 transition">
+            Marcar / Desmarcar Todas
+          </button>
+        </div>
+
+        <!-- Meals List Container -->
+        <div id="meals-list-container" class="space-y-3.5">
+          <!-- Populated dynamically via JS -->
+        </div>
       </div>
 
-      <!-- EXTRA ITEMS / FORA DO PLANO -->
+      <!-- ITEM EXTRA / REFEIÇÃO LIVRE -->
       <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
               <i data-lucide="PlusCircle" class="w-4 h-4 text-amber-400"></i>
-              Itens Extras / Fora do Plano
+              Item Extra / Refeição Livre
             </h3>
-            <p class="text-xs text-slate-400">Comeu algo a mais hoje? Registre abaixo para somar no cálculo diário.</p>
+            <p class="text-xs text-zinc-400">Comeu algo fora das 4 refeições principais? Adicione aqui para contabilizar no dia.</p>
           </div>
-          <!-- Quick Preset Chips -->
           <div class="flex flex-wrap gap-1.5">
-            <button onclick="quickAddExtra('Ovo Cozido Extra (1 un)', 70, 6)" class="text-[11px] font-mono-num px-2 py-1 rounded-lg bg-bgElevated hover:bg-amber-500/20 border border-borderSubtle text-slate-300 hover:text-amber-300 transition">
+            <button onclick="quickAddExtra('1 Ovo Cozido Extra', 70, 6)" class="text-[11px] font-mono-num px-2.5 py-1 rounded-lg bg-bgElevated hover:bg-amber-500/20 border border-borderSubtle text-zinc-300 hover:text-amber-300 transition">
               +1 Ovo (70kcal | 6g P)
             </button>
-            <button onclick="quickAddExtra('Dose Whey Soldiers (40g)', 155, 28)" class="text-[11px] font-mono-num px-2 py-1 rounded-lg bg-bgElevated hover:bg-amber-500/20 border border-borderSubtle text-slate-300 hover:text-amber-300 transition">
-              +Whey 40g (155kcal | 28g P)
+            <button onclick="quickAddExtra('Dose Whey Soldiers 40g (Água)', 156, 28)" class="text-[11px] font-mono-num px-2.5 py-1 rounded-lg bg-bgElevated hover:bg-amber-500/20 border border-borderSubtle text-zinc-300 hover:text-amber-300 transition">
+              +Whey 40g (156kcal | 28g P)
             </button>
-            <button onclick="quickAddExtra('Fruta Média Extra', 85, 1)" class="text-[11px] font-mono-num px-2 py-1 rounded-lg bg-bgElevated hover:bg-amber-500/20 border border-borderSubtle text-slate-300 hover:text-amber-300 transition">
-              +Fruta (85kcal)
+            <button onclick="quickAddExtra('Fruta Média Extra', 80, 1)" class="text-[11px] font-mono-num px-2.5 py-1 rounded-lg bg-bgElevated hover:bg-amber-500/20 border border-borderSubtle text-zinc-300 hover:text-amber-300 transition">
+              +Fruta (80kcal | 1g P)
             </button>
           </div>
         </div>
 
-        <!-- Add Extra Form -->
         <form onsubmit="handleAddExtraSubmit(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-          <input type="text" id="extra-name" required placeholder="Ex.: Pão de queijo, café c/ leite, bombom..." class="sm:col-span-6 bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" />
-          <input type="number" id="extra-kcal" required min="0" max="5000" placeholder="Kcal (ex: 150)" class="sm:col-span-2 bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-xs sm:text-sm font-mono-num text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" />
-          <input type="number" id="extra-prot" min="0" max="300" placeholder="Prot (g)" class="sm:col-span-2 bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-xs sm:text-sm font-mono-num text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" />
-          <button type="submit" class="sm:col-span-2 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5">
+          <input type="text" id="extra-name" required placeholder="Nome do alimento / lanche extra..." class="sm:col-span-6 bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500" />
+          <input type="number" id="extra-kcal" required min="0" max="5000" placeholder="Kcal (ex: 150)" class="sm:col-span-2 bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-xs sm:text-sm font-mono-num text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500" />
+          <input type="number" id="extra-prot" min="0" max="300" step="0.5" placeholder="Prot (g)" class="sm:col-span-2 bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-xs sm:text-sm font-mono-num text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500" />
+          <button type="submit" class="sm:col-span-2 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5">
             <i data-lucide="Plus" class="w-4 h-4"></i>
             Adicionar
           </button>
         </form>
 
-        <!-- Extra Items List -->
         <div id="extra-items-list" class="space-y-2">
           <!-- Rendered by JS -->
         </div>
       </div>
-    </section>
 
-    <!-- ========================================== -->
-    <!-- TAB 2: TREINO & PESO                       -->
-    <!-- ========================================== -->
-    <section id="tab-content-treino" class="hidden space-y-5">
-
-      <!-- WEEKLY WORKOUT & CARDIO TRACKER -->
+      <!-- 3. PAINEL SEMANAL DE TREINOS (MUSCULAÇÃO 4X + CÁRDIO 3X) -->
       <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <i data-lucide="Flame" class="w-4 h-4 text-emerald-400"></i>
-              Meta Semanal de Treino & Cárdio
+              <i data-lucide="Dumbbell" class="w-4 h-4 text-violet-400"></i>
+              Painel Semanal de Treinos (Musculação 4x + Cárdio 3x)
             </h2>
-            <p class="text-xs text-slate-400">4 sessões de Musculação + 3 sessões de 30 min de Cárdio moderado/alto.</p>
+            <p class="text-xs text-zinc-400">Controle sua rotina semanal para garantir o gasto calórico de ~2.600 kcal/dia.</p>
           </div>
           <div class="flex items-center gap-2">
-            <span id="weekly-workout-badge" class="text-xs font-mono-num px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">
-              0/7 Concluídos
+            <span id="weekly-workout-badge" class="text-xs font-mono-num px-2.5 py-1 rounded-lg bg-violet-500/15 text-violet-300 border border-violet-500/30 font-semibold">
+              0/7 concluídos
             </span>
-            <button onclick="resetWeeklyWorkouts()" class="text-xs font-mono-num px-2.5 py-1 rounded-lg bg-bgElevated hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-borderSubtle transition">
+            <button onclick="resetWeeklyWorkouts()" class="text-xs font-mono-num px-2.5 py-1 rounded-lg bg-bgElevated hover:bg-rose-500/20 text-zinc-300 hover:text-rose-300 border border-borderSubtle transition">
               Resetar Semana
             </button>
           </div>
         </div>
 
-        <!-- Weekly Progress Bar -->
-        <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle/60">
-          <div id="weekly-workout-bar" class="h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full progress-transition" style="width: 0%"></div>
+        <div class="w-full h-2.5 bg-bgMain rounded-full overflow-hidden border border-borderSubtle">
+          <div id="weekly-workout-bar" class="h-full bg-violet-500 rounded-full progress-transition" style="width: 0%"></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
           <!-- Musculação 4x -->
-          <div class="bg-bgMain/70 border border-borderSubtle rounded-xl p-3.5 space-y-3">
+          <div class="bg-bgMain border border-borderSubtle rounded-xl p-3.5 space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5">
                 <i data-lucide="Dumbbell" class="w-4 h-4"></i>
                 Musculação (4x / Semana)
               </span>
-              <span id="musc-count-label" class="text-xs font-mono-num text-slate-400">0/4</span>
+              <span id="musc-count-label" class="text-xs font-mono-num text-zinc-400">0/4</span>
             </div>
             <div id="musculacao-checkboxes" class="grid grid-cols-2 gap-2">
               <!-- Populated by JS -->
@@ -377,13 +368,13 @@
           </div>
 
           <!-- Cárdio 3x 30 min -->
-          <div class="bg-bgMain/70 border border-borderSubtle rounded-xl p-3.5 space-y-3">
+          <div class="bg-bgMain border border-borderSubtle rounded-xl p-3.5 space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                <i data-lucide="Zap" class="w-4 h-4"></i>
-                Cárdio 30 min Mod/Alto (3x / Sem)
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                <i data-lucide="Timer" class="w-4 h-4"></i>
+                Cárdio 30min Mod/Alto (3x / Sem)
               </span>
-              <span id="cardio-count-label" class="text-xs font-mono-num text-slate-400">0/3</span>
+              <span id="cardio-count-label" class="text-xs font-mono-num text-zinc-400">0/3</span>
             </div>
             <div id="cardio-checkboxes" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <!-- Populated by JS -->
@@ -392,130 +383,99 @@
         </div>
       </div>
 
-      <!-- BODY WEIGHT TRACKER & CHART -->
-      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <i data-lucide="Scale" class="w-4 h-4 text-blue-400"></i>
-              Evolução do Peso Corporal
-            </h2>
-            <p class="text-xs text-slate-400">Pesagem ideal: em jejum pela manhã, 1x por semana.</p>
-          </div>
-
-          <!-- Stats Pills -->
-          <div class="flex flex-wrap items-center gap-2">
-            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
-              <span class="text-slate-400">Inicial:</span> <strong id="weight-stat-initial" class="text-white">81.0 kg</strong>
-            </div>
-            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
-              <span class="text-slate-400">Atual:</span> <strong id="weight-stat-current" class="text-emerald-400">81.0 kg</strong>
-            </div>
-            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
-              <span class="text-slate-400">Variação:</span> <strong id="weight-stat-diff" class="text-slate-200">0.0 kg</strong>
-            </div>
-            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
-              <span class="text-slate-400">IMC:</span> <strong id="weight-stat-bmi" class="text-blue-400">26.4</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- New Weight Entry Form -->
-        <form onsubmit="handleAddWeightSubmit(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-          <input type="date" id="weight-input-date" required class="sm:col-span-4 bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm font-mono-num text-white focus:outline-none focus:border-blue-500" />
-          <input type="number" id="weight-input-val" required step="0.1" min="40" max="250" placeholder="Peso em kg (ex: 80.4)" class="sm:col-span-4 bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm font-mono-num text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" />
-          <input type="text" id="weight-input-note" placeholder="Obs (ex: Em jejum)" class="sm:col-span-2 bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" />
-          <button type="submit" class="sm:col-span-2 py-2 px-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-slate-950 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5">
-            <i data-lucide="Plus" class="w-4 h-4"></i>
-            Registrar
-          </button>
-        </form>
-
-        <!-- SVG Weight Trend Chart -->
-        <div class="bg-bgMain border border-borderSubtle rounded-xl p-3">
-          <div class="text-[11px] font-mono-num text-slate-400 mb-2 flex justify-between">
-            <span>Gráfico de Tendência (kg)</span>
-            <span id="chart-points-label">1 registro</span>
-          </div>
-          <div id="weight-chart-container" class="w-full h-44">
-            <!-- SVG Chart rendered by JS -->
-          </div>
-        </div>
-
-        <!-- Weight Log History -->
-        <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="weight-history-list">
-          <!-- Populated by JS -->
-        </div>
-      </div>
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 3: MARMITAS & COMPRAS                  -->
+    <!-- TAB 2: MARMITAS & COMPRAS                  -->
     <!-- ========================================== -->
-    <section id="tab-content-marmitas" class="hidden space-y-5">
+    <section id="tab-content-marmitas" class="hidden space-y-6">
 
-      <!-- BATCH COOKING CALCULATOR -->
-      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+      <!-- BATCH COOKING CALCULATOR (8 PROTEINS + 4 CARBS) -->
+      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <i data-lucide="Calculator" class="w-4 h-4 text-emerald-400"></i>
-              Calculadora de Lote de Marmitas (Peso Cru vs. Pronto)
+              Calculadora de Lote de Marmitas (8 Proteínas & 4 Carboidratos)
             </h2>
-            <p class="text-xs text-slate-400">Defina quantas marmitas de cada carne vai montar e veja o peso cru exato para comprar.</p>
+            <p class="text-xs text-zinc-400">Planeje suas marmitas da semana (normalmente 10 a 14) e veja o peso bruto de mercado automaticamente.</p>
           </div>
-          <div class="flex gap-1.5">
-            <button onclick="setBatchPreset(4, 3, 2, 1)" class="text-xs font-mono-num px-2.5 py-1.5 rounded-lg bg-bgElevated hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-300 border border-borderSubtle transition">
-              10 Marmitas (Seg-Sex)
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="applyBatchPreset10()" class="text-xs font-mono-num px-2.5 py-1.5 rounded-lg bg-bgElevated hover:bg-emerald-500/20 text-zinc-300 hover:text-emerald-300 border border-borderSubtle transition">
+              Preset 10 Marmitas (Seg-Sex)
             </button>
-            <button onclick="setBatchPreset(6, 4, 2, 2)" class="text-xs font-mono-num px-2.5 py-1.5 rounded-lg bg-bgElevated hover:bg-blue-500/20 text-slate-300 hover:text-blue-300 border border-borderSubtle transition">
-              14 Marmitas (7 Dias)
+            <button onclick="applyBatchPreset14()" class="text-xs font-mono-num px-2.5 py-1.5 rounded-lg bg-bgElevated hover:bg-sky-500/20 text-zinc-300 hover:text-sky-300 border border-borderSubtle transition">
+              Preset 14 Marmitas (7 Dias)
             </button>
           </div>
         </div>
 
-        <!-- Protein Batch Steppers -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="batch-protein-cards">
-          <!-- Rendered by JS -->
+        <!-- Step 1: 8 Proteins -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono-num">
+              1. Escolha a quantidade por Proteína (Peso Pronto → Peso Cru)
+            </h3>
+            <span id="batch-prot-total-badge" class="text-xs font-mono-num text-zinc-300">Total Proteínas: 14 marmitas</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5" id="batch-protein-cards">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Step 2: 4 Carbs -->
+        <div class="space-y-2.5 pt-2 border-t border-borderSubtle">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400 font-mono-num">
+              2. Escolha a base de Carboidrato das Marmitas (Peso Pronto → Peso Cru)
+            </h3>
+            <span id="batch-carb-sync-badge" class="text-xs font-mono-num px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              Carbos alinhados: 14/14
+            </span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5" id="batch-carb-cards">
+            <!-- Rendered by JS -->
+          </div>
         </div>
 
         <!-- Summary Banner of Batch Prep -->
         <div class="bg-bgMain border border-borderSubtle rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
           <div>
-            <span class="text-[11px] text-slate-400 block">Total de Marmitas</span>
-            <strong id="batch-total-boxes" class="text-lg sm:text-xl font-mono-num text-emerald-400">10 un</strong>
+            <span class="text-[11px] text-zinc-400 block">Marmitas Planejadas</span>
+            <strong id="batch-total-boxes" class="text-lg sm:text-xl font-mono-num text-emerald-400">14 un</strong>
+            <span class="text-[10px] font-mono-num text-zinc-500 block">Almoço + Jantar</span>
           </div>
           <div>
-            <span class="text-[11px] text-slate-400 block">Batata Inglesa (Crua)</span>
-            <strong id="batch-raw-potato" class="text-lg sm:text-xl font-mono-num text-amber-400">3,10 kg</strong>
-            <span id="batch-cooked-potato" class="text-[10px] font-mono-num text-slate-400 block">(270g pronta/pote)</span>
+            <span class="text-[11px] text-zinc-400 block">Carnes / Peixes (Cru)</span>
+            <strong id="batch-total-raw-meat" class="text-lg sm:text-xl font-mono-num text-white">2,65 kg</strong>
+            <span id="batch-total-tuna-cans" class="text-[10px] font-mono-num text-sky-400 block">+ 2 latas de atum</span>
           </div>
           <div>
-            <span class="text-[11px] text-slate-400 block">Legumes Variados (Crus)</span>
-            <strong id="batch-raw-veggies" class="text-lg sm:text-xl font-mono-num text-blue-400">1,65 kg</strong>
-            <span class="text-[10px] font-mono-num text-slate-400 block">(150g cozido/pote)</span>
+            <span class="text-[11px] text-zinc-400 block">Legumes Variados (Crus)</span>
+            <strong id="batch-raw-veggies" class="text-lg sm:text-xl font-mono-num text-sky-400">2,38 kg</strong>
+            <span class="text-[10px] font-mono-num text-zinc-500 block">150g cozidos / marmita</span>
           </div>
           <div>
-            <span class="text-[11px] text-slate-400 block">Volume por Marmita</span>
-            <strong class="text-lg sm:text-xl font-mono-num text-white">~580 g</strong>
-            <span class="text-[10px] font-mono-num text-slate-400 block">Alta saciedade (~590 kcal)</span>
+            <span class="text-[11px] text-zinc-400 block">Média por Marmita</span>
+            <strong class="text-lg sm:text-xl font-mono-num text-amber-400">~540 kcal</strong>
+            <span class="text-[10px] font-mono-num text-zinc-500 block">~52g Proteína / pote</span>
           </div>
         </div>
       </div>
 
-      <!-- INTERACTIVE GROCERY LIST & AIRFRYER GUIDE -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <!-- LISTA DE COMPRAS SEMANAL + GUIA DE EQUIVALÊNCIAS -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <!-- Grocery Checklist -->
-        <div class="md:col-span-7 bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-3">
+        <div class="lg:col-span-7 bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-3.5">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <i data-lucide="ShoppingCart" class="w-4 h-4 text-emerald-400"></i>
-                Lista de Compras da Semana
+                Lista de Compras Semanal (Peso Bruto de Mercado)
               </h3>
-              <p class="text-xs text-slate-400">Calculada automaticamente com base nas marmitas + café/lanche (7 dias).</p>
+              <p class="text-xs text-zinc-400">Soma automática das marmitas + itens fixos de Café da Manhã e Lanche (Whey + Leite).</p>
             </div>
-            <button onclick="clearShoppingChecks()" class="text-xs font-mono-num text-slate-400 hover:text-white transition">
+            <button onclick="clearShoppingChecks()" class="text-xs font-mono-num px-2.5 py-1 rounded-lg bg-bgElevated text-zinc-400 hover:text-white border border-borderSubtle transition">
               Desmarcar Tudo
             </button>
           </div>
@@ -525,29 +485,45 @@
           </div>
         </div>
 
-        <!-- Airfryer & Prep Protocol -->
-        <div class="md:col-span-5 bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-3.5">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <!-- Guia Rápido de Equivalências & Preparo -->
+        <div class="lg:col-span-5 bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
             <i data-lucide="Flame" class="w-4 h-4 text-amber-400"></i>
-            Guia Rápido: Lote em 1 Hora
+            Guia Rápido de Equivalências & Preparo
           </h3>
-          <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
-            <div class="p-3 rounded-xl bg-bgMain border border-borderSubtle">
-              <div class="font-bold text-amber-400 font-mono-num mb-1">1. Batata Inglesa na Airfryer</div>
-              <p>Pique em cubos ou rodelas, tempere com sal, páprica, alho em pó e orégano (sem óleo ou apenas 1 borrifada). Asse a <strong>200°C por 20–24 min</strong> sacudindo na metade. Coloque <strong>270g prontas</strong> em cada pote.</p>
-            </div>
-            <div class="p-3 rounded-xl bg-bgMain border border-borderSubtle">
-              <div class="font-bold text-emerald-400 font-mono-num mb-1">2. Pesos Prontos de Proteína</div>
-              <ul class="space-y-1 font-mono-num text-[11px] text-slate-300">
-                <li>• <strong>Peito de Frango:</strong> 160g pronto (~215g cru)</li>
-                <li>• <strong>Guisado de 1ª:</strong> 145g pronto (~195g cru)</li>
-                <li>• <strong>Fígado Bovino:</strong> 160g pronto (~210g cru)</li>
-                <li>• <strong>Fígado de Galinha:</strong> 175g pronto (~230g cru)</li>
+
+          <div class="space-y-3 text-xs text-zinc-300 leading-relaxed">
+            <div class="p-3.5 rounded-xl bg-bgMain border border-borderSubtle space-y-1.5">
+              <div class="font-bold text-emerald-400 font-mono-num uppercase text-[11px]">Tabela de Proteínas (Peso Pronto na Marmita)</div>
+              <ul class="space-y-1 font-mono-num text-[11px] text-zinc-300">
+                <li>• <strong>Frango Peito:</strong> 160g pronto (~220g cru) → 260 kcal | 50g P</li>
+                <li>• <strong>Guisado 1ª:</strong> 145g pronto (~200g cru) → 265 kcal | 43g P</li>
+                <li>• <strong>Fígado Bovino:</strong> 160g pronto (~215g cru) → 255 kcal | 46g P</li>
+                <li>• <strong>Fígado Galinha:</strong> 175g pronto (~235g cru) → 250 kcal | 44g P</li>
+                <li>• <strong>Atum + Ovos:</strong> 1 lata (120g drenado) + 2 ovos → 265 kcal | 44g P</li>
+                <li>• <strong>Sobrecoxa s/ pele:</strong> 140g pronta (~200g crua) → 260 kcal | 40g P</li>
+                <li>• <strong>Músculo na Pressão:</strong> 150g pronto (~215g cru) → 250 kcal | 46g P</li>
+                <li>• <strong>Lombo/Pernil Magro:</strong> 155g pronto (~210g cru) → 250 kcal | 47g P</li>
               </ul>
             </div>
-            <div class="p-3 rounded-xl bg-bgMain border border-borderSubtle">
-              <div class="font-bold text-blue-400 font-mono-num mb-1">3. Segredo para Não Ressecar</div>
-              <p>No <strong>Guisado de 1ª</strong> e no <strong>Fígado de Galinha</strong>, adicione tomate picado, cebola e um pouco de molho de tomate caseiro. No <strong>Fígado Bovino</strong>, selar rápido para manter úmido ao reaquecer.</p>
+
+            <div class="p-3.5 rounded-xl bg-bgMain border border-borderSubtle space-y-1.5">
+              <div class="font-bold text-sky-400 font-mono-num uppercase text-[11px]">Tabela de Carboidratos (Peso Pronto na Marmita)</div>
+              <ul class="space-y-1 font-mono-num text-[11px] text-zinc-300">
+                <li>• <strong>Batata Inglesa:</strong> 280g pronta (~330g crua) → 240 kcal | 5g P</li>
+                <li>• <strong>Arroz Branco:</strong> 185g cozido (~75g cru) → 240 kcal | 4.5g P</li>
+                <li>• <strong>Arroz + Feijão:</strong> 130g arroz + 100g feijão → 245 kcal | 7.5g P</li>
+                <li>• <strong>Massa Cozida:</strong> 160g cozida (~70g crua) → 245 kcal | 8g P</li>
+                <li class="text-emerald-400 pt-1">+ Sempre incluir <strong>150g de legumes cozidos</strong> (+35 kcal | +2g P)</li>
+              </ul>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-bgMain border border-borderSubtle space-y-1.5">
+              <div class="font-bold text-violet-400 font-mono-num uppercase text-[11px]">Dicas Airfryer & Panela de Pressão</div>
+              <p class="text-[11px] text-zinc-300">
+                <strong>Na Airfryer (200°C):</strong> Batata inglesa em cubos leva 20–22 min; Peito de Frango, Sobrecoxa s/ pele e Lombo Suíno levam 16–18 min.<br/>
+                <strong>Na Pressão:</strong> Cozinhe o Músculo Bovino em cubos com cebola, alho e tomate por 35 min na pressão — fica macio, não resseca no congelador e é super barato.
+              </p>
             </div>
           </div>
         </div>
@@ -555,19 +531,143 @@
 
     </section>
 
+    <!-- ========================================== -->
+    <!-- TAB 3: PESO & HISTÓRICO                    -->
+    <!-- ========================================== -->
+    <section id="tab-content-historico" class="hidden space-y-6">
+
+      <!-- 1. REGISTRO DE PESO CORPORAL + GRÁFICO SVG -->
+      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="Scale" class="w-4 h-4 text-sky-400"></i>
+              Registro de Peso Corporal & Evolução
+            </h2>
+            <p class="text-xs text-zinc-400">Registre seu peso em jejum 1x por semana para acompanhar a resposta ao déficit de 2050 kcal.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
+              <span class="text-zinc-400">Inicial:</span> <strong id="weight-stat-initial" class="text-white">81.0 kg</strong>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
+              <span class="text-zinc-400">Atual:</span> <strong id="weight-stat-current" class="text-emerald-400">81.0 kg</strong>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-bgMain border border-borderSubtle text-xs font-mono-num">
+              <span class="text-zinc-400">Δ Peso:</span> <strong id="weight-stat-diff" class="text-zinc-200">0.0 kg</strong>
+            </div>
+          </div>
+        </div>
+
+        <form onsubmit="handleAddWeightSubmit(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+          <input type="date" id="weight-input-date" required class="sm:col-span-4 bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm font-mono-num text-white focus:outline-none focus:border-sky-500" />
+          <input type="number" id="weight-input-val" required step="0.1" min="40" max="250" placeholder="Peso em kg (ex: 80.3)" class="sm:col-span-4 bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm font-mono-num text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500" />
+          <input type="text" id="weight-input-note" placeholder="Nota (ex: Jejum)" class="sm:col-span-2 bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500" />
+          <button type="submit" class="sm:col-span-2 py-2 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-zinc-950 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5">
+            <i data-lucide="Plus" class="w-4 h-4"></i>
+            Registrar
+          </button>
+        </form>
+
+        <!-- SVG Trend Chart -->
+        <div class="bg-bgMain border border-borderSubtle rounded-xl p-3.5">
+          <div class="text-[11px] font-mono-num text-zinc-400 mb-2 flex justify-between">
+            <span>Curva de Peso (kg)</span>
+            <span id="chart-points-label">1 pesagem</span>
+          </div>
+          <div id="weight-chart-container" class="w-full h-44">
+            <!-- SVG Chart rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Weight Log History -->
+        <div class="space-y-2 max-h-48 overflow-y-auto pr-1" id="weight-history-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- 2. HISTÓRICO DIÁRIO DE CONSISTÊNCIA -->
+      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="CalendarCheck" class="w-4 h-4 text-emerald-400"></i>
+              Histórico Diário de Consistência
+            </h2>
+            <p class="text-xs text-zinc-400">Todos os dias salvos no seu dispositivo. Clique em qualquer data para abrir ou revisar o dia.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-borderSubtle text-[11px] font-mono-num uppercase text-zinc-400">
+                <th class="py-2.5 px-3">Data</th>
+                <th class="py-2.5 px-3">Calorias</th>
+                <th class="py-2.5 px-3">Proteína</th>
+                <th class="py-2.5 px-3">Água</th>
+                <th class="py-2.5 px-3">Refeições</th>
+                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="daily-history-table-body" class="divide-y divide-borderSubtle/60 text-xs font-mono-num">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. CONFIGURAÇÕES DE METAS -->
+      <div class="bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="SlidersHorizontal" class="w-4 h-4 text-violet-400"></i>
+              Configurações de Metas Diárias
+            </h2>
+            <p class="text-xs text-zinc-400">Ajuste suas metas de calorias, proteínas e água ou restaure o cardápio original.</p>
+          </div>
+          <button type="button" onclick="restoreDefaultTemplates()" class="text-xs font-mono-num px-3 py-1.5 rounded-xl bg-bgElevated hover:bg-amber-500/20 text-amber-400 border border-borderSubtle transition">
+            Restaurar Cardápio Padrão
+          </button>
+        </div>
+
+        <form onsubmit="saveGoals(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+          <div>
+            <label class="text-xs text-zinc-400 block mb-1 font-mono-num">Meta de Calorias (kcal)</label>
+            <input type="number" id="goal-input-kcal" required min="1000" max="6000" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="text-xs text-zinc-400 block mb-1 font-mono-num">Meta de Proteína (g)</label>
+            <input type="number" id="goal-input-prot" required min="50" max="400" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="text-xs text-zinc-400 block mb-1 font-mono-num">Meta de Água (ml)</label>
+            <input type="number" id="goal-input-water" required min="1000" max="8000" step="100" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <button type="submit" class="py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-xs sm:text-sm font-semibold text-zinc-950 transition">
+            Salvar Metas
+          </button>
+        </form>
+      </div>
+
+    </section>
+
   </main>
 
   <!-- ========================================== -->
-  <!-- MODAL: EDITAR REFEIÇÃO                     -->
+  <!-- MODAL: EDITAR REFEIÇÃO CUSTOMIZADA         -->
   <!-- ========================================== -->
-  <div id="modal-edit-meal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="modal-edit-meal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-bgCard border border-borderSubtle rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-borderSubtle pb-3">
         <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
           <i data-lucide="Edit3" class="w-4 h-4 text-emerald-400"></i>
           Editar Refeição
         </h3>
-        <button onclick="closeEditMealModal()" class="text-slate-400 hover:text-white">
+        <button onclick="closeEditMealModal()" class="text-zinc-400 hover:text-white">
           <i data-lucide="X" class="w-5 h-5"></i>
         </button>
       </div>
@@ -575,99 +675,37 @@
       <form onsubmit="saveEditedMeal(event)" class="space-y-3">
         <input type="hidden" id="edit-meal-id" />
         <div>
-          <label class="text-xs text-slate-400 block mb-1">Nome da Refeição</label>
+          <label class="text-xs text-zinc-400 block mb-1">Título da Refeição</label>
           <input type="text" id="edit-meal-title" required class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
         </div>
         <div>
-          <label class="text-xs text-slate-400 block mb-1">Descrição / Alimentos e Quantidades</label>
+          <label class="text-xs text-zinc-400 block mb-1">Descrição e Quantidades</label>
           <textarea id="edit-meal-desc" rows="3" required class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-[11px] text-slate-400 block mb-1">Calorias (kcal)</label>
+            <label class="text-xs text-zinc-400 block mb-1 font-mono-num">Calorias (kcal)</label>
             <input type="number" id="edit-meal-kcal" required min="0" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label class="text-[11px] text-slate-400 block mb-1">Proteína (g)</label>
-            <input type="number" id="edit-meal-prot" required min="0" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">Carbo (g)</label>
-            <input type="number" id="edit-meal-carb" required min="0" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">Gordura (g)</label>
-            <input type="number" id="edit-meal-fat" required min="0" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
+            <label class="text-xs text-zinc-400 block mb-1 font-mono-num">Proteína (g)</label>
+            <input type="number" id="edit-meal-prot" required min="0" step="0.5" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
         <div class="pt-1">
-          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+          <label class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer">
             <input type="checkbox" id="edit-meal-save-default" checked class="rounded bg-bgMain border-borderSubtle text-emerald-500 focus:ring-0" />
-            <span>Salvar também como padrão para os próximos dias</span>
+            <span>Definir como padrão para os próximos dias</span>
           </label>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-borderSubtle">
-          <button type="button" onclick="closeEditMealModal()" class="px-4 py-2 rounded-xl bg-bgElevated text-xs font-semibold text-slate-300 hover:text-white">
+          <button type="button" onclick="closeEditMealModal()" class="px-4 py-2 rounded-xl bg-bgElevated text-xs font-semibold text-zinc-300 hover:text-white">
             Cancelar
           </button>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-xs font-semibold text-slate-950">
-            Salvar Alterações
+          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-xs font-semibold text-zinc-950">
+            Salvar
           </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL: EDITAR METAS DIÁRIAS                -->
-  <!-- ========================================== -->
-  <div id="modal-edit-goals" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-bgCard border border-borderSubtle rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-borderSubtle pb-3">
-        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="SlidersHorizontal" class="w-4 h-4 text-emerald-400"></i>
-          Configurar Metas Diárias & Perfil
-        </h3>
-        <button onclick="closeGoalsModal()" class="text-slate-400 hover:text-white">
-          <i data-lucide="X" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form onsubmit="saveGoals(event)" class="space-y-3">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Meta de Calorias (kcal)</label>
-            <input type="number" id="goal-input-kcal" required min="1000" max="6000" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Meta de Proteína (g)</label>
-            <input type="number" id="goal-input-prot" required min="50" max="400" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Meta de Água (ml)</label>
-            <input type="number" id="goal-input-water" required min="1000" max="8000" step="100" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Altura (m)</label>
-            <input type="number" id="goal-input-height" required step="0.01" min="1.20" max="2.30" class="w-full bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-sm font-mono-num text-white focus:outline-none focus:border-emerald-500" />
-          </div>
-        </div>
-
-        <div class="pt-2 flex items-center justify-between border-t border-borderSubtle">
-          <button type="button" onclick="restoreDefaultTemplates()" class="text-xs text-amber-400 hover:underline">
-            Restaurar Cardápio Original
-          </button>
-          <div class="flex gap-2">
-            <button type="button" onclick="closeGoalsModal()" class="px-4 py-2 rounded-xl bg-bgElevated text-xs font-semibold text-slate-300">
-              Cancelar
-            </button>
-            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-xs font-semibold text-slate-950">
-              Salvar Metas
-            </button>
-          </div>
         </div>
       </form>
     </div>
@@ -677,122 +715,239 @@
   <!-- APPLICATION LOGIC (JAVASCRIPT)             -->
   <!-- ========================================== -->
   <script>
-    const STORAGE_KEY = 'diet_logbook_v1_state';
+    const STORAGE_KEY = 'diet_logbook_v2_state';
 
-    // Protein Swap Options for Lunch & Dinner Marmitas
+    // Fixed Veggie Side included in every Marmita (+150g cooked veggies)
+    const VEGGIE_SIDE = {
+      kcal: 35,
+      prot: 2,
+      rawGrams: 170,
+      cookedGrams: 150,
+      text: '150g de legumes cozidos (cenoura, chuchu, abobrinha ou brócolis)'
+    };
+
+    // 8 Protein Options for Lunch & Dinner (Cooked weight & macros for the protein portion alone)
     const PROTEIN_OPTIONS = {
       frango: {
         key: 'frango',
-        label: 'Peito de Frango',
-        shortLabel: 'Frango (160g)',
+        label: 'Frango Peito (160g)',
+        fullName: '160g de Peito de Frango grelhado/Airfryer',
         cookedGrams: 160,
-        rawGrams: 215,
-        kcal: 590,
-        prot: 52,
-        carb: 68,
-        fat: 10,
-        desc: '160g de Peito de Frango grelhado/Airfryer (peso pronto) + 270g de batata inglesa (Airfryer, cozida ou purê) + 150g de legumes cozidos (cenoura, chuchu, abobrinha ou brócolis).'
+        rawGrams: 220,
+        kcal: 260,
+        prot: 50
       },
       guisado: {
         key: 'guisado',
-        label: 'Guisado de 1ª',
-        shortLabel: 'Guisado 1ª (145g)',
+        label: 'Guisado 1ª (145g)',
+        fullName: '145g de Guisado de 1ª refogado s/ óleo',
         cookedGrams: 145,
-        rawGrams: 195,
-        kcal: 595,
-        prot: 45,
-        carb: 68,
-        fat: 14,
-        desc: '145g de Guisado de 1ª refogado sem óleo com tomate e cebola (peso pronto) + 270g de batata inglesa (Airfryer ou purê) + 150g de legumes cozidos.'
+        rawGrams: 200,
+        kcal: 265,
+        prot: 43
       },
       figado_bovino: {
         key: 'figado_bovino',
-        label: 'Fígado Bovino',
-        shortLabel: 'Fígado Bov. (160g)',
+        label: 'Fígado Bovino (160g)',
+        fullName: '160g de Fígado Bovino acebolado',
         cookedGrams: 160,
-        rawGrams: 210,
-        kcal: 580,
-        prot: 48,
-        carb: 70,
-        fat: 9,
-        desc: '160g de Fígado Bovino acebolado (peso pronto) + 270g de batata inglesa (Airfryer, cozida ou purê) + 150g de legumes cozidos.'
+        rawGrams: 215,
+        kcal: 255,
+        prot: 46
       },
       figado_galinha: {
         key: 'figado_galinha',
-        label: 'Fígado de Galinha',
-        shortLabel: 'Fígado Gal. (175g)',
+        label: 'Fígado Galinha (175g)',
+        fullName: '175g de Fígado de Galinha ao molho',
         cookedGrams: 175,
-        rawGrams: 230,
-        kcal: 600,
-        prot: 46,
-        carb: 69,
-        fat: 13,
-        desc: '175g de Fígado de Galinha ensopado ao molho de tomate caseiro (peso pronto) + 270g de batata inglesa (purê ou Airfryer) + 150g de legumes cozidos.'
+        rawGrams: 235,
+        kcal: 250,
+        prot: 44
+      },
+      atum_ovos: {
+        key: 'atum_ovos',
+        label: 'Atum (1 lata 120g + 2 ovos)',
+        fullName: '1 lata de Atum em água drenado (120g) + 2 ovos cozidos',
+        cookedGrams: 220,
+        rawGrams: 0,
+        isTunaCombo: true,
+        kcal: 265,
+        prot: 44
+      },
+      sobrecoxa: {
+        key: 'sobrecoxa',
+        label: 'Sobrecoxa s/ pele (140g)',
+        fullName: '140g de Sobrecoxa de Frango s/ pele assada/Airfryer',
+        cookedGrams: 140,
+        rawGrams: 200,
+        kcal: 260,
+        prot: 40
+      },
+      musculo: {
+        key: 'musculo',
+        label: 'Músculo na Pressão (150g)',
+        fullName: '150g de Músculo Bovino cozido na pressão',
+        cookedGrams: 150,
+        rawGrams: 215,
+        kcal: 250,
+        prot: 46
+      },
+      lombo: {
+        key: 'lombo',
+        label: 'Lombo/Pernil Magro (155g)',
+        fullName: '155g de Lombo ou Pernil Suíno magro assado',
+        cookedGrams: 155,
+        rawGrams: 210,
+        kcal: 250,
+        prot: 47
       }
     };
 
+    // 4 Carbohydrate Options for Lunch & Dinner
+    const CARB_OPTIONS = {
+      batata: {
+        key: 'batata',
+        label: 'Batata Inglesa (280g)',
+        fullName: '280g de Batata Inglesa (Airfryer, cozida ou purê)',
+        cookedGrams: 280,
+        rawGrams: 330,
+        kcal: 240,
+        prot: 5
+      },
+      arroz: {
+        key: 'arroz',
+        label: 'Arroz Branco (185g)',
+        fullName: '185g de Arroz Branco cozido',
+        cookedGrams: 185,
+        rawGrams: 75,
+        kcal: 240,
+        prot: 4.5
+      },
+      arroz_feijao: {
+        key: 'arroz_feijao',
+        label: 'Arroz (130g) + Feijão (100g)',
+        fullName: '130g de Arroz Branco + 100g de Feijão cozido',
+        cookedGrams: 230,
+        rawRiceGrams: 55,
+        rawBeanGrams: 35,
+        kcal: 245,
+        prot: 7.5
+      },
+      massa: {
+        key: 'massa',
+        label: 'Massa Cozida (160g)',
+        fullName: '160g de Massa/Macarrão cozido al dente',
+        cookedGrams: 160,
+        rawGrams: 70,
+        kcal: 245,
+        prot: 8
+      }
+    };
+
+    // Breakfast Quick Options
+    const BREAKFAST_OPTIONS = {
+      padrao: {
+        key: 'padrao',
+        label: 'Padrão: Ovos + Pão + Fruta',
+        kcal: 450,
+        prot: 28,
+        desc: '3 ovos inteiros mexidos + 2 fatias de pão integral (ou 1 francês s/ miolo) + 1 fruta média.'
+      },
+      cuscuz_aveia: {
+        key: 'cuscuz_aveia',
+        label: 'Ovos + Cuscuz/Aveia + Fruta',
+        kcal: 445,
+        prot: 27,
+        desc: '3 ovos inteiros mexidos + 130g de cuscuz de milho cozido (ou 35g de aveia) + 1 fruta média.'
+      }
+    };
+
+    // Afternoon Snack (Whey Soldiers 70%) Quick Options
+    const SNACK_OPTIONS = {
+      com_leite: {
+        key: 'com_leite',
+        label: 'Com Leite Desnatado (200ml)',
+        kcal: 411,
+        prot: 40,
+        desc: '40g Whey 70% Soldiers + 200ml leite desnatado + 30g aveia em flocos + 1 banana média (90g) em vitamina ou mingau.'
+      },
+      com_agua: {
+        key: 'com_agua',
+        label: 'Com Água (Sem Leite)',
+        kcal: 346,
+        prot: 33,
+        desc: '40g Whey 70% Soldiers diluído em água + 30g aveia em flocos + 1 banana média (90g).'
+      }
+    };
+
+    // Helper: Build combined marmita meal object from proteinKey & carbKey
+    function computeMarmitaMacros(proteinKey, carbKey) {
+      const p = PROTEIN_OPTIONS[proteinKey] || PROTEIN_OPTIONS.frango;
+      const c = CARB_OPTIONS[carbKey] || CARB_OPTIONS.batata;
+      const kcal = Math.round(p.kcal + c.kcal + VEGGIE_SIDE.kcal);
+      const prot = Math.round((p.prot + c.prot + VEGGIE_SIDE.prot) * 10) / 10;
+      const desc = `${p.fullName} + ${c.fullName} + ${VEGGIE_SIDE.text}.`;
+      return { kcal, prot, desc };
+    }
+
     // Default 4 Base Meals
     function getDefaultMealTemplates() {
+      const lunchCalc = computeMarmitaMacros('frango', 'batata');
+      const dinnerCalc = computeMarmitaMacros('guisado', 'batata');
+
       return [
         {
           id: 'meal_1',
+          type: 'breakfast',
           timeTag: 'Refeição 01 • Manhã',
-          title: 'Café da Manhã Prático',
-          hasProteinSwap: false,
-          selectedProtein: null,
-          kcal: 450,
-          prot: 28,
-          carb: 36,
-          fat: 19,
-          desc: '3 ovos inteiros mexidos + 2 fatias de pão integral (ou 1 pão francês) + 1 fruta média (banana ou maçã).'
+          title: 'Café da Manhã',
+          selectedVariant: 'padrao',
+          kcal: BREAKFAST_OPTIONS.padrao.kcal,
+          prot: BREAKFAST_OPTIONS.padrao.prot,
+          desc: BREAKFAST_OPTIONS.padrao.desc
         },
         {
           id: 'meal_2',
+          type: 'marmita',
           timeTag: 'Refeição 02 • Almoço',
-          title: 'Almoço — Marmita Volumosa',
-          hasProteinSwap: true,
+          title: 'Almoço (Marmita 1)',
           selectedProtein: 'frango',
-          kcal: PROTEIN_OPTIONS.frango.kcal,
-          prot: PROTEIN_OPTIONS.frango.prot,
-          carb: PROTEIN_OPTIONS.frango.carb,
-          fat: PROTEIN_OPTIONS.frango.fat,
-          desc: PROTEIN_OPTIONS.frango.desc
+          selectedCarb: 'batata',
+          kcal: lunchCalc.kcal,
+          prot: lunchCalc.prot,
+          desc: lunchCalc.desc
         },
         {
           id: 'meal_3',
-          timeTag: 'Refeição 03 • Tarde / Treino',
-          title: 'Lanche da Tarde (Pré/Pós-Treino)',
-          hasProteinSwap: false,
-          selectedProtein: null,
-          kcal: 405,
-          prot: 35,
-          carb: 52,
-          fat: 6,
-          desc: '40g de Whey Protein 70% Soldiers + 40g de aveia em flocos + 1 banana média (em mingau quente ou vitamina batida).'
+          type: 'snack',
+          timeTag: 'Refeição 03 • Tarde (Pré/Pós-Treino)',
+          title: 'Lanche da Tarde (Whey Soldiers 70%)',
+          selectedVariant: 'com_leite',
+          kcal: SNACK_OPTIONS.com_leite.kcal,
+          prot: SNACK_OPTIONS.com_leite.prot,
+          desc: SNACK_OPTIONS.com_leite.desc
         },
         {
           id: 'meal_4',
+          type: 'marmita',
           timeTag: 'Refeição 04 • Noite',
-          title: 'Jantar — Marmita Volumosa',
-          hasProteinSwap: true,
-          selectedProtein: 'figado_bovino',
-          kcal: PROTEIN_OPTIONS.figado_bovino.kcal,
-          prot: PROTEIN_OPTIONS.figado_bovino.prot,
-          carb: PROTEIN_OPTIONS.figado_bovino.carb,
-          fat: PROTEIN_OPTIONS.figado_bovino.fat,
-          desc: PROTEIN_OPTIONS.figado_bovino.desc
+          title: 'Jantar (Marmita 2)',
+          selectedProtein: 'guisado',
+          selectedCarb: 'batata',
+          kcal: dinnerCalc.kcal,
+          prot: dinnerCalc.prot,
+          desc: dinnerCalc.desc
         }
       ];
     }
 
-    // Helper: Get local YYYY-MM-DD
     function getTodayISO() {
       const now = new Date();
       const offset = now.getTimezoneOffset() * 60000;
       return new Date(now.getTime() - offset).toISOString().split('T')[0];
     }
 
-    // Default global state
+    // Global Application State
     let appState = {
       profile: {
         age: 22,
@@ -815,17 +970,78 @@
         { id: 'w_init', date: getTodayISO(), weight: 81.0, note: 'Peso Inicial' }
       ],
       batchCalculator: {
-        frango: 4,
-        guisado: 3,
-        figado_bovino: 2,
-        figado_galinha: 1
+        proteins: {
+          frango: 4,
+          guisado: 3,
+          figado_bovino: 2,
+          figado_galinha: 1,
+          atum_ovos: 1,
+          sobrecoxa: 1,
+          musculo: 1,
+          lombo: 1
+        },
+        carbs: {
+          batata: 6,
+          arroz: 3,
+          arroz_feijao: 3,
+          massa: 2
+        }
       },
       shoppingChecked: {}
     };
 
     let currentSelectedDate = getTodayISO();
 
-    // Load State from localStorage
+    // Generate Native PWA App Icon automatically via Canvas (for mobile "Add to Home Screen")
+    function setupNativePWAIcon() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Dark background
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Subtle emerald border ring
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 20;
+        ctx.strokeRect(36, 36, 440, 440);
+
+        // Inner badge text
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'bold 148px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('DL', 256, 220);
+
+        ctx.fillStyle = '#f4f4f5';
+        ctx.font = 'bold 46px Inter, sans-serif';
+        ctx.fillText('2050 KCAL', 256, 355);
+
+        const iconDataUrl = canvas.toDataURL('image/png');
+        document.getElementById('dynamic-favicon').href = iconDataUrl;
+        document.getElementById('dynamic-apple-icon').href = iconDataUrl;
+
+        const manifest = {
+          name: 'Diet Logbook — Déficit 2050 kcal',
+          short_name: 'Diet Logbook',
+          start_url: '.',
+          display: 'standalone',
+          background_color: '#09090b',
+          theme_color: '#09090b',
+          icons: [
+            { src: iconDataUrl, sizes: '512x512', type: 'image/png' }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        document.getElementById('dynamic-manifest').href = URL.createObjectURL(manifestBlob);
+      } catch (e) {
+        console.warn('Não foi possível gerar ícone dinâmico:', e);
+      }
+    }
+
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -837,12 +1053,15 @@
             profile: { ...appState.profile, ...(parsed.profile || {}) },
             goals: { ...appState.goals, ...(parsed.goals || {}) },
             weeklyWorkouts: { ...appState.weeklyWorkouts, ...(parsed.weeklyWorkouts || {}) },
-            batchCalculator: { ...appState.batchCalculator, ...(parsed.batchCalculator || {}) },
+            batchCalculator: {
+              proteins: { ...appState.batchCalculator.proteins, ...(parsed.batchCalculator?.proteins || {}) },
+              carbs: { ...appState.batchCalculator.carbs, ...(parsed.batchCalculator?.carbs || {}) }
+            },
             shoppingChecked: parsed.shoppingChecked || {}
           };
         }
       } catch (e) {
-        console.error('Erro ao ler localStorage:', e);
+        console.error('Erro ao ler estado:', e);
       }
       ensureDayExists(currentSelectedDate);
     }
@@ -851,11 +1070,10 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
       } catch (e) {
-        console.error('Erro ao salvar no localStorage:', e);
+        console.error('Erro ao salvar estado:', e);
       }
     }
 
-    // Ensure a specific date record exists in appState.days
     function ensureDayExists(dateStr) {
       if (!appState.days[dateStr]) {
         const clonedMeals = JSON.parse(JSON.stringify(appState.mealTemplates)).map(m => ({
@@ -871,16 +1089,16 @@
       }
     }
 
-    // Toast notification helper
-    function showToast(message, type = 'emerald') {
+    function showToast(message, color = 'emerald') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      const colors = {
+      const styles = {
         emerald: 'border-emerald-500/40 bg-bgCard text-emerald-300',
-        blue: 'border-blue-500/40 bg-bgCard text-blue-300',
+        sky: 'border-sky-500/40 bg-bgCard text-sky-300',
+        violet: 'border-violet-500/40 bg-bgCard text-violet-300',
         amber: 'border-amber-500/40 bg-bgCard text-amber-300'
       };
-      toast.className = `px-3.5 py-2.5 rounded-xl border ${colors[type] || colors.emerald} shadow-xl text-xs font-mono-num flex items-center gap-2 transition-all duration-300`;
+      toast.className = `px-3.5 py-2.5 rounded-xl border ${styles[color] || styles.emerald} shadow-xl text-xs font-mono-num flex items-center gap-2 transition-all duration-300`;
       toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-current"></span><span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => {
@@ -890,7 +1108,7 @@
     }
 
     // ==========================================
-    // DATE NAVIGATION & 7-DAY STRIP
+    // DATE NAVIGATION & SUMMARY TOTALS
     // ==========================================
     function changeDate(deltaDays) {
       const parts = currentSelectedDate.split('-').map(Number);
@@ -915,14 +1133,12 @@
 
     function getDaySummaryTotals(dateStr) {
       const dayData = appState.days[dateStr];
-      if (!dayData) return { kcal: 0, prot: 0, carb: 0, fat: 0, checkedCount: 0, water: 0 };
-      let kcal = 0, prot = 0, carb = 0, fat = 0, checkedCount = 0;
+      if (!dayData) return { kcal: 0, prot: 0, checkedCount: 0, water: 0 };
+      let kcal = 0, prot = 0, checkedCount = 0;
       dayData.meals.forEach(m => {
         if (m.checked) {
           kcal += Number(m.kcal) || 0;
           prot += Number(m.prot) || 0;
-          carb += Number(m.carb) || 0;
-          fat += Number(m.fat) || 0;
           checkedCount++;
         }
       });
@@ -930,12 +1146,17 @@
         kcal += Number(ex.kcal) || 0;
         prot += Number(ex.prot) || 0;
       });
-      return { kcal, prot, carb, fat, checkedCount, water: dayData.water || 0 };
+      return {
+        kcal: Math.round(kcal),
+        prot: Math.round(prot * 10) / 10,
+        checkedCount,
+        water: dayData.water || 0
+      };
     }
 
-    function renderDateHeaderAndStrip() {
-      const picker = document.getElementById('date-picker');
-      picker.value = currentSelectedDate;
+    function renderHeaderAndTopDashboard() {
+      document.getElementById('app-main-title').textContent = `DIET LOGBOOK // DÉFICIT ${appState.goals.kcal} KCAL`;
+      document.getElementById('date-picker').value = currentSelectedDate;
 
       const todayISO = getTodayISO();
       const badge = document.getElementById('date-label-badge');
@@ -952,52 +1173,9 @@
         btnToday.classList.remove('hidden');
       }
 
-      // Render last 7 days consistency pills
-      const strip = document.getElementById('seven-day-strip');
-      strip.innerHTML = '';
-      const weekDaysShort = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-      const baseParts = todayISO.split('-').map(Number);
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(baseParts[0], baseParts[1] - 1, baseParts[2]);
-        d.setDate(d.getDate() - i);
-        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const dayName = weekDaysShort[d.getDay()];
-        const dayNum = String(d.getDate()).padStart(2, '0');
-        const totals = getDaySummaryTotals(iso);
-
-        const isSelected = iso === currentSelectedDate;
-        const hitGoal = totals.kcal >= appState.goals.kcal * 0.8 && totals.kcal <= appState.goals.kcal * 1.1 && totals.prot >= appState.goals.prot * 0.85;
-        const hasActivity = totals.kcal > 0 || totals.water > 0;
-
-        let dotClass = 'bg-slate-700';
-        if (hitGoal) dotClass = 'bg-emerald-400 shadow-[0_0_6px_#10b981]';
-        else if (hasActivity) dotClass = 'bg-amber-400';
-
-        const btn = document.createElement('button');
-        btn.onclick = () => jumpToDate(iso);
-        btn.className = `flex flex-col items-center px-2 py-1 rounded-xl border text-[10px] font-mono-num transition ${
-          isSelected
-            ? 'bg-bgElevated border-emerald-500/60 text-white'
-            : 'bg-bgCard border-borderSubtle text-slate-400 hover:border-slate-600'
-        }`;
-        btn.innerHTML = `
-          <span class="text-[9px] uppercase">${dayName}</span>
-          <span class="font-bold text-xs text-slate-200">${dayNum}</span>
-          <span class="w-1.5 h-1.5 rounded-full mt-1 ${dotClass}"></span>
-        `;
-        strip.appendChild(btn);
-      }
-    }
-
-    // ==========================================
-    // TOP PROGRESS DASHBOARD
-    // ==========================================
-    function renderTopDashboard() {
       const totals = getDaySummaryTotals(currentSelectedDate);
       const { kcal: goalKcal, prot: goalProt, water: goalWater } = appState.goals;
 
-      // Latest weight
       const latestWeightObj = getLatestWeightEntry();
       const currentWeight = latestWeightObj ? latestWeightObj.weight : appState.profile.initialWeight;
       document.getElementById('header-current-weight').textContent = `${currentWeight.toFixed(1).replace('.', ',')} kg`;
@@ -1014,17 +1192,15 @@
       const kcalBadge = document.getElementById('kcal-status-badge');
       if (kcalDiff >= 0) {
         kcalBadge.textContent = `Restam ${kcalDiff} kcal`;
-        kcalBadge.className = 'text-[11px] font-mono-num px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30';
+        kcalBadge.className = 'text-[11px] font-mono-num px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30';
         kcalBar.className = 'h-full bg-emerald-500 rounded-full progress-transition';
       } else {
         kcalBadge.textContent = `+${Math.abs(kcalDiff)} kcal acima`;
-        kcalBadge.className = 'text-[11px] font-mono-num px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30';
+        kcalBadge.className = 'text-[11px] font-mono-num px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30';
         kcalBar.className = 'h-full bg-amber-500 rounded-full progress-transition';
       }
 
-      document.getElementById('carb-current').textContent = `${totals.carb}g`;
-      document.getElementById('fat-current').textContent = `${totals.fat}g`;
-      document.getElementById('meals-checked-count').textContent = `${totals.checkedCount}/4`;
+      document.getElementById('meals-checked-count').textContent = `${totals.checkedCount}/4 refeições`;
 
       // Protein
       document.getElementById('prot-current').textContent = totals.prot;
@@ -1034,9 +1210,9 @@
       document.getElementById('prot-bar').style.width = `${protPct}%`;
 
       const gPerKg = (totals.prot / currentWeight).toFixed(1);
-      document.getElementById('prot-per-kg-badge').textContent = `${gPerKg} g/kg`;
-      const protRem = Math.max(0, goalProt - totals.prot);
-      document.getElementById('prot-remaining-text').textContent = protRem > 0 ? `Faltam ${protRem}g` : `Meta batida!`;
+      document.getElementById('prot-per-kg-badge').textContent = `${gPerKg}g/kg (Alvo ~2.1g/kg)`;
+      const protRem = Math.max(0, Math.round((goalProt - totals.prot) * 10) / 10);
+      document.getElementById('prot-remaining-text').textContent = protRem > 0 ? `Faltam ${protRem}g` : `Meta atingida!`;
 
       // Water
       document.getElementById('water-current').textContent = totals.water;
@@ -1051,21 +1227,21 @@
       const current = appState.days[currentSelectedDate].water || 0;
       appState.days[currentSelectedDate].water = Math.max(0, current + amountMl);
       saveState();
-      renderTopDashboard();
-      renderDateHeaderAndStrip();
+      renderHeaderAndTopDashboard();
+      renderDailyHistoryTable();
     }
 
     function resetWater() {
       ensureDayExists(currentSelectedDate);
       appState.days[currentSelectedDate].water = 0;
       saveState();
-      renderTopDashboard();
-      renderDateHeaderAndStrip();
-      showToast('Hidratação do dia zerada', 'blue');
+      renderHeaderAndTopDashboard();
+      renderDailyHistoryTable();
+      showToast('Contador de água zerado', 'sky');
     }
 
     // ==========================================
-    // TAB 1: MEALS CHECKLIST, PROTEIN SWAP & EXTRAS
+    // TAB 1: MEALS CHECKLIST & DUAL SELECTORS
     // ==========================================
     function renderMealsList() {
       ensureDayExists(currentSelectedDate);
@@ -1075,91 +1251,163 @@
 
       dayData.meals.forEach((meal, idx) => {
         const card = document.createElement('div');
-        card.className = `bg-bgCard border border-borderSubtle rounded-2xl p-4 transition-all ${meal.checked ? 'meal-card-checked' : ''}`;
+        card.className = `bg-bgCard border border-borderSubtle rounded-2xl p-4 sm:p-5 transition-all ${meal.checked ? 'meal-card-checked' : ''}`;
 
-        // Build 1-click protein swap buttons if applicable
-        let proteinSwapHTML = '';
-        if (meal.hasProteinSwap) {
-          const buttonsHTML = Object.values(PROTEIN_OPTIONS).map(opt => {
-            const active = meal.selectedProtein === opt.key;
+        let interactiveSelectorsHTML = '';
+
+        // 1. Breakfast Quick Swap Pills
+        if (meal.type === 'breakfast') {
+          const pills = Object.values(BREAKFAST_OPTIONS).map(opt => {
+            const active = meal.selectedVariant === opt.key;
             return `
-              <button type="button" onclick="swapMealProtein(${idx}, '${opt.key}')"
+              <button type="button" onclick="swapBreakfastVariant(${idx}, '${opt.key}')"
                 class="px-2.5 py-1.5 rounded-xl text-[11px] font-mono-num font-semibold border transition flex items-center gap-1.5 ${
                   active
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm'
-                    : 'bg-bgMain hover:bg-bgElevated border-borderSubtle text-slate-400 hover:text-slate-200'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                    : 'bg-bgMain hover:bg-bgElevated border-borderSubtle text-zinc-400 hover:text-zinc-200'
                 }">
-                <span class="w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-400' : 'bg-slate-600'}"></span>
-                ${opt.shortLabel}
+                <span class="w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-400' : 'bg-zinc-600'}"></span>
+                ${opt.label}
               </button>
             `;
           }).join('');
 
-          proteinSwapHTML = `
+          interactiveSelectorsHTML = `
             <div class="mt-3 pt-3 border-t border-borderSubtle/70">
-              <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-                <i data-lucide="Repeat" class="w-3.5 h-3.5 text-emerald-400"></i>
-                Troca Rápida de Proteína (Ajusta Peso e Macros):
+              <span class="text-[10px] font-mono-num uppercase tracking-wider text-zinc-400 block mb-1.5">Opção Rápida do Café:</span>
+              <div class="flex flex-wrap gap-1.5">${pills}</div>
+            </div>
+          `;
+        }
+
+        // 2. Lunch & Dinner Dual Quick-Swap Selector (8 Proteins + 4 Carbs)
+        if (meal.type === 'marmita') {
+          const protButtons = Object.values(PROTEIN_OPTIONS).map(opt => {
+            const active = meal.selectedProtein === opt.key;
+            return `
+              <button type="button" onclick="swapMarmitaComponent(${idx}, 'protein', '${opt.key}')"
+                class="px-2.5 py-1.5 rounded-xl text-[11px] font-mono-num font-semibold border transition flex items-center gap-1.5 ${
+                  active
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm'
+                    : 'bg-bgMain hover:bg-bgElevated border-borderSubtle text-zinc-400 hover:text-zinc-200'
+                }">
+                <span class="w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-400' : 'bg-zinc-600'}"></span>
+                ${opt.label}
+              </button>
+            `;
+          }).join('');
+
+          const carbButtons = Object.values(CARB_OPTIONS).map(opt => {
+            const active = meal.selectedCarb === opt.key;
+            return `
+              <button type="button" onclick="swapMarmitaComponent(${idx}, 'carb', '${opt.key}')"
+                class="px-2.5 py-1.5 rounded-xl text-[11px] font-mono-num font-semibold border transition flex items-center gap-1.5 ${
+                  active
+                    ? 'bg-sky-500/20 border-sky-500 text-sky-300 shadow-sm'
+                    : 'bg-bgMain hover:bg-bgElevated border-borderSubtle text-zinc-400 hover:text-zinc-200'
+                }">
+                <span class="w-1.5 h-1.5 rounded-full ${active ? 'bg-sky-400' : 'bg-zinc-600'}"></span>
+                ${opt.label}
+              </button>
+            `;
+          }).join('');
+
+          interactiveSelectorsHTML = `
+            <div class="mt-3.5 pt-3 border-t border-borderSubtle/70 space-y-3">
+              <div>
+                <div class="text-[10px] font-mono-num uppercase tracking-wider text-emerald-400 mb-1.5 flex items-center gap-1.5">
+                  <i data-lucide="Beef" class="w-3.5 h-3.5"></i>
+                  Seletor de Proteína (Peso Pronto):
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  ${protButtons}
+                </div>
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                ${buttonsHTML}
+
+              <div>
+                <div class="text-[10px] font-mono-num uppercase tracking-wider text-sky-400 mb-1.5 flex items-center gap-1.5">
+                  <i data-lucide="Wheat" class="w-3.5 h-3.5"></i>
+                  Seletor de Carboidrato (Peso Pronto):
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  ${carbButtons}
+                </div>
               </div>
+            </div>
+          `;
+        }
+
+        // 3. Afternoon Snack (Whey Soldiers 70% + Skim Milk vs Water)
+        if (meal.type === 'snack') {
+          const snackButtons = Object.values(SNACK_OPTIONS).map(opt => {
+            const active = meal.selectedVariant === opt.key;
+            return `
+              <button type="button" onclick="swapSnackVariant(${idx}, '${opt.key}')"
+                class="px-2.5 py-1.5 rounded-xl text-[11px] font-mono-num font-semibold border transition flex items-center gap-1.5 ${
+                  active
+                    ? 'bg-sky-500/20 border-sky-500 text-sky-300'
+                    : 'bg-bgMain hover:bg-bgElevated border-borderSubtle text-zinc-400 hover:text-zinc-200'
+                }">
+                <span class="w-1.5 h-1.5 rounded-full ${active ? 'bg-sky-400' : 'bg-zinc-600'}"></span>
+                ${opt.label}
+              </button>
+            `;
+          }).join('');
+
+          interactiveSelectorsHTML = `
+            <div class="mt-3 pt-3 border-t border-borderSubtle/70">
+              <span class="text-[10px] font-mono-num uppercase tracking-wider text-sky-400 block mb-1.5">Preparo do Whey 70% Soldiers (40g):</span>
+              <div class="flex flex-wrap gap-1.5">${snackButtons}</div>
             </div>
           `;
         }
 
         card.innerHTML = `
           <div class="flex items-start justify-between gap-3">
-            <!-- Checkbox + Info -->
             <div class="flex items-start gap-3.5 flex-1">
               <button type="button" onclick="toggleMealCheck(${idx})"
                 class="mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition flex-shrink-0 ${
                   meal.checked
-                    ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                    : 'bg-bgMain border-slate-600 hover:border-emerald-400 text-transparent'
+                    ? 'bg-emerald-500 border-emerald-500 text-zinc-950'
+                    : 'bg-bgMain border-zinc-600 hover:border-emerald-400 text-transparent'
                 }">
                 <i data-lucide="Check" class="w-4 h-4 stroke-[3]"></i>
               </button>
 
               <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-[10px] font-mono-num uppercase px-2 py-0.5 rounded bg-bgMain text-slate-400 border border-borderSubtle">
-                    ${meal.timeTag || `Refeição 0${idx + 1}`}
-                  </span>
-                  <h3 onclick="toggleMealCheck(${idx})" class="text-sm sm:text-base font-bold cursor-pointer ${meal.checked ? 'line-through text-slate-400' : 'text-white'}">
-                    ${meal.title}
-                  </h3>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[10px] font-mono-num uppercase px-2 py-0.5 rounded bg-bgMain text-zinc-400 border border-borderSubtle">
+                      ${meal.timeTag || `Refeição 0${idx + 1}`}
+                    </span>
+                    <h3 onclick="toggleMealCheck(${idx})" class="text-sm sm:text-base font-bold cursor-pointer ${meal.checked ? 'line-through text-zinc-400' : 'text-white'}">
+                      ${meal.title}
+                    </h3>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 font-mono-num text-xs">
+                    <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-semibold">
+                      ${meal.kcal} kcal
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/25 font-semibold">
+                      ${meal.prot}g Proteína
+                    </span>
+                  </div>
                 </div>
 
-                <p class="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+                <p class="text-xs sm:text-sm text-zinc-300 mt-2 leading-relaxed">
                   ${meal.desc}
                 </p>
 
-                <!-- Macro Pills -->
-                <div class="flex flex-wrap items-center gap-2 mt-2.5 font-mono-num text-xs">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-semibold">
-                    ${meal.kcal} kcal
-                  </span>
-                  <span class="px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/25 font-semibold">
-                    ${meal.prot}g P
-                  </span>
-                  <span class="px-2 py-0.5 rounded-lg bg-bgMain text-slate-400 border border-borderSubtle">
-                    ${meal.carb}g C
-                  </span>
-                  <span class="px-2 py-0.5 rounded-lg bg-bgMain text-slate-400 border border-borderSubtle">
-                    ${meal.fat}g G
-                  </span>
-                </div>
-
-                ${proteinSwapHTML}
+                ${interactiveSelectorsHTML}
               </div>
             </div>
 
-            <!-- Edit Button -->
             <button type="button" onclick="openEditMealModal(${idx})"
-              class="p-2 rounded-xl bg-bgMain hover:bg-bgElevated border border-borderSubtle text-slate-400 hover:text-white transition flex-shrink-0"
-              title="Editar esta refeição">
-              <i data-lucide="Pencil" class="w-4 h-4"></i>
+              class="px-2.5 py-1.5 rounded-xl bg-bgMain hover:bg-bgElevated border border-borderSubtle text-xs font-mono-num text-zinc-400 hover:text-white transition flex items-center gap-1 flex-shrink-0"
+              title="Editar manualmente">
+              <i data-lucide="Pencil" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Editar</span>
             </button>
           </div>
         `;
@@ -1185,37 +1433,80 @@
       meals.forEach(m => (m.checked = !allChecked));
       saveState();
       renderAll();
-      showToast(!allChecked ? 'Todas as 4 refeições marcadas!' : 'Refeições desmarcadas');
+      showToast(!allChecked ? 'Todas as 4 refeições concluídas!' : 'Refeições desmarcadas');
     }
 
-    function swapMealProtein(mealIndex, proteinKey) {
-      const opt = PROTEIN_OPTIONS[proteinKey];
+    function swapBreakfastVariant(mealIndex, variantKey) {
+      const opt = BREAKFAST_OPTIONS[variantKey];
       if (!opt) return;
       ensureDayExists(currentSelectedDate);
       const meal = appState.days[currentSelectedDate].meals[mealIndex];
-      meal.selectedProtein = opt.key;
+      meal.selectedVariant = opt.key;
       meal.kcal = opt.kcal;
       meal.prot = opt.prot;
-      meal.carb = opt.carb;
-      meal.fat = opt.fat;
       meal.desc = opt.desc;
 
-      // Also update default template so next days keep convenience
       if (appState.mealTemplates[mealIndex]) {
-        appState.mealTemplates[mealIndex].selectedProtein = opt.key;
+        appState.mealTemplates[mealIndex].selectedVariant = opt.key;
         appState.mealTemplates[mealIndex].kcal = opt.kcal;
         appState.mealTemplates[mealIndex].prot = opt.prot;
-        appState.mealTemplates[mealIndex].carb = opt.carb;
-        appState.mealTemplates[mealIndex].fat = opt.fat;
         appState.mealTemplates[mealIndex].desc = opt.desc;
+      }
+      saveState();
+      renderAll();
+      showToast(`Café atualizado: ${opt.label}`, 'emerald');
+    }
+
+    function swapSnackVariant(mealIndex, variantKey) {
+      const opt = SNACK_OPTIONS[variantKey];
+      if (!opt) return;
+      ensureDayExists(currentSelectedDate);
+      const meal = appState.days[currentSelectedDate].meals[mealIndex];
+      meal.selectedVariant = opt.key;
+      meal.kcal = opt.kcal;
+      meal.prot = opt.prot;
+      meal.desc = opt.desc;
+
+      if (appState.mealTemplates[mealIndex]) {
+        appState.mealTemplates[mealIndex].selectedVariant = opt.key;
+        appState.mealTemplates[mealIndex].kcal = opt.kcal;
+        appState.mealTemplates[mealIndex].prot = opt.prot;
+        appState.mealTemplates[mealIndex].desc = opt.desc;
+      }
+      saveState();
+      renderAll();
+      showToast(`Lanche atualizado: ${opt.label}`, 'sky');
+    }
+
+    function swapMarmitaComponent(mealIndex, part, key) {
+      ensureDayExists(currentSelectedDate);
+      const meal = appState.days[currentSelectedDate].meals[mealIndex];
+      if (part === 'protein') {
+        meal.selectedProtein = key;
+      } else {
+        meal.selectedCarb = key;
+      }
+
+      const calc = computeMarmitaMacros(meal.selectedProtein || 'frango', meal.selectedCarb || 'batata');
+      meal.kcal = calc.kcal;
+      meal.prot = calc.prot;
+      meal.desc = calc.desc;
+
+      if (appState.mealTemplates[mealIndex]) {
+        appState.mealTemplates[mealIndex].selectedProtein = meal.selectedProtein;
+        appState.mealTemplates[mealIndex].selectedCarb = meal.selectedCarb;
+        appState.mealTemplates[mealIndex].kcal = calc.kcal;
+        appState.mealTemplates[mealIndex].prot = calc.prot;
+        appState.mealTemplates[mealIndex].desc = calc.desc;
       }
 
       saveState();
       renderAll();
-      showToast(`Proteína alterada: ${opt.label} (${opt.cookedGrams}g pronto)`, 'emerald');
+      const label = part === 'protein' ? PROTEIN_OPTIONS[key].label : CARB_OPTIONS[key].label;
+      showToast(`Marmita ajustada: ${label} (${calc.kcal} kcal | ${calc.prot}g P)`, part === 'protein' ? 'emerald' : 'sky');
     }
 
-    // Extra items
+    // Extras
     function renderExtrasList() {
       ensureDayExists(currentSelectedDate);
       const extras = appState.days[currentSelectedDate].extras || [];
@@ -1223,8 +1514,8 @@
 
       if (extras.length === 0) {
         container.innerHTML = `
-          <div class="text-xs text-slate-500 font-mono-num py-2 text-center border border-dashed border-borderSubtle rounded-xl">
-            Nenhum item extra registrado neste dia.
+          <div class="text-xs text-zinc-500 font-mono-num py-2 text-center border border-dashed border-borderSubtle rounded-xl">
+            Nenhum item extra registrado hoje.
           </div>
         `;
         return;
@@ -1238,8 +1529,8 @@
           </div>
           <div class="flex items-center gap-3">
             <span class="text-xs font-mono-num text-amber-400 font-semibold">+${item.kcal} kcal</span>
-            <span class="text-xs font-mono-num text-blue-400">+${item.prot || 0}g P</span>
-            <button onclick="removeExtraItem(${idx})" class="text-slate-500 hover:text-rose-400 transition">
+            <span class="text-xs font-mono-num text-sky-400">+${item.prot || 0}g P</span>
+            <button onclick="removeExtraItem(${idx})" class="text-zinc-500 hover:text-rose-400 transition" title="Excluir item">
               <i data-lucide="Trash2" class="w-4 h-4"></i>
             </button>
           </div>
@@ -1257,7 +1548,7 @@
 
       const name = nameInput.value.trim();
       const kcal = parseInt(kcalInput.value, 10) || 0;
-      const prot = parseInt(protInput.value, 10) || 0;
+      const prot = parseFloat(protInput.value) || 0;
       if (!name) return;
 
       quickAddExtra(name, kcal, prot);
@@ -1276,7 +1567,7 @@
       });
       saveState();
       renderAll();
-      showToast(`Adicionado: ${name} (+${kcal} kcal)`, 'amber');
+      showToast(`Extra registrado: ${name} (+${kcal} kcal)`, 'amber');
     }
 
     function removeExtraItem(idx) {
@@ -1284,6 +1575,73 @@
       appState.days[currentSelectedDate].extras.splice(idx, 1);
       saveState();
       renderAll();
+    }
+
+    // Weekly Workouts Panel (in Tab 1)
+    function renderWeeklyWorkoutsPanel() {
+      const muscArr = appState.weeklyWorkouts.musculacao;
+      const cardioArr = appState.weeklyWorkouts.cardio;
+
+      const muscContainer = document.getElementById('musculacao-checkboxes');
+      muscContainer.innerHTML = muscArr.map((done, i) => `
+        <button type="button" onclick="toggleWorkout('musculacao', ${i})"
+          class="p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
+            done
+              ? 'bg-violet-500/15 border-violet-500/50 text-violet-300'
+              : 'bg-bgCard border-borderSubtle text-zinc-400 hover:border-zinc-600'
+          }">
+          <div>
+            <div class="text-xs font-bold text-white">Musculação #${i + 1}</div>
+            <div class="text-[10px] font-mono-num">${done ? 'Concluído' : 'Pendente'}</div>
+          </div>
+          <div class="w-5 h-5 rounded-md flex items-center justify-center font-bold ${done ? 'bg-violet-500 text-zinc-950' : 'border border-zinc-600'}">
+            ${done ? '✓' : ''}
+          </div>
+        </button>
+      `).join('');
+
+      const cardioContainer = document.getElementById('cardio-checkboxes');
+      cardioContainer.innerHTML = cardioArr.map((done, i) => `
+        <button type="button" onclick="toggleWorkout('cardio', ${i})"
+          class="p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
+            done
+              ? 'bg-sky-500/15 border-sky-500/50 text-sky-300'
+              : 'bg-bgCard border-borderSubtle text-zinc-400 hover:border-zinc-600'
+          }">
+          <div>
+            <div class="text-xs font-bold text-white">Cárdio 30min #${i + 1}</div>
+            <div class="text-[10px] font-mono-num">${done ? 'Concluído' : 'Mod/Alto'}</div>
+          </div>
+          <div class="w-5 h-5 rounded-md flex items-center justify-center font-bold ${done ? 'bg-sky-500 text-zinc-950' : 'border border-zinc-600'}">
+            ${done ? '✓' : ''}
+          </div>
+        </button>
+      `).join('');
+
+      const muscDone = muscArr.filter(Boolean).length;
+      const cardioDone = cardioArr.filter(Boolean).length;
+      const totalDone = muscDone + cardioDone;
+
+      document.getElementById('musc-count-label').textContent = `${muscDone}/4`;
+      document.getElementById('cardio-count-label').textContent = `${cardioDone}/3`;
+      document.getElementById('weekly-workout-badge').textContent = `${totalDone}/7 concluídos`;
+      document.getElementById('weekly-workout-bar').style.width = `${Math.round((totalDone / 7) * 100)}%`;
+    }
+
+    function toggleWorkout(type, index) {
+      appState.weeklyWorkouts[type][index] = !appState.weeklyWorkouts[type][index];
+      saveState();
+      renderWeeklyWorkoutsPanel();
+    }
+
+    function resetWeeklyWorkouts() {
+      appState.weeklyWorkouts = {
+        musculacao: [false, false, false, false],
+        cardio: [false, false, false]
+      };
+      saveState();
+      renderWeeklyWorkoutsPanel();
+      showToast('Painel semanal de treinos resetado!', 'violet');
     }
 
     // ==========================================
@@ -1297,8 +1655,6 @@
       document.getElementById('edit-meal-desc').value = meal.desc;
       document.getElementById('edit-meal-kcal').value = meal.kcal;
       document.getElementById('edit-meal-prot').value = meal.prot;
-      document.getElementById('edit-meal-carb').value = meal.carb;
-      document.getElementById('edit-meal-fat').value = meal.fat;
       document.getElementById('modal-edit-meal').classList.remove('hidden');
     }
 
@@ -1312,9 +1668,7 @@
       const title = document.getElementById('edit-meal-title').value.trim();
       const desc = document.getElementById('edit-meal-desc').value.trim();
       const kcal = parseInt(document.getElementById('edit-meal-kcal').value, 10) || 0;
-      const prot = parseInt(document.getElementById('edit-meal-prot').value, 10) || 0;
-      const carb = parseInt(document.getElementById('edit-meal-carb').value, 10) || 0;
-      const fat = parseInt(document.getElementById('edit-meal-fat').value, 10) || 0;
+      const prot = parseFloat(document.getElementById('edit-meal-prot').value) || 0;
       const saveDefault = document.getElementById('edit-meal-save-default').checked;
 
       ensureDayExists(currentSelectedDate);
@@ -1324,8 +1678,6 @@
         meal.desc = desc;
         meal.kcal = kcal;
         meal.prot = prot;
-        meal.carb = carb;
-        meal.fat = fat;
       }
 
       if (saveDefault && appState.mealTemplates[idx]) {
@@ -1333,109 +1685,345 @@
         appState.mealTemplates[idx].desc = desc;
         appState.mealTemplates[idx].kcal = kcal;
         appState.mealTemplates[idx].prot = prot;
-        appState.mealTemplates[idx].carb = carb;
-        appState.mealTemplates[idx].fat = fat;
       }
 
       saveState();
       closeEditMealModal();
       renderAll();
-      showToast('Refeição atualizada com sucesso!');
+      showToast('Refeição customizada salva!');
     }
 
     // ==========================================
-    // GOALS MODAL
+    // TAB 2: MARMITAS & COMPRAS (8 PROTEINS + 4 CARBS)
     // ==========================================
-    function openGoalsModal() {
-      document.getElementById('goal-input-kcal').value = appState.goals.kcal;
-      document.getElementById('goal-input-prot').value = appState.goals.prot;
-      document.getElementById('goal-input-water').value = appState.goals.water;
-      document.getElementById('goal-input-height').value = appState.profile.height;
-      document.getElementById('modal-edit-goals').classList.remove('hidden');
+    function renderBatchCalculatorAndShopping() {
+      const protCounts = appState.batchCalculator.proteins;
+      const carbCounts = appState.batchCalculator.carbs;
+
+      // Render 8 Protein Cards
+      const protContainer = document.getElementById('batch-protein-cards');
+      protContainer.innerHTML = Object.values(PROTEIN_OPTIONS).map(opt => {
+        const count = protCounts[opt.key] || 0;
+        let subLine = '';
+        if (opt.isTunaCombo) {
+          subLine = `${count} lata(s) + ${count * 2} ovos`;
+        } else {
+          const rawKg = ((count * opt.rawGrams) / 1000).toFixed(2).replace('.', ',');
+          subLine = `Cru: <strong class="text-emerald-400">${rawKg} kg</strong> (${count * opt.cookedGrams}g pronto)`;
+        }
+
+        return `
+          <div class="bg-bgMain border border-borderSubtle rounded-xl p-3 flex flex-col justify-between space-y-2.5">
+            <div>
+              <div class="text-xs font-bold text-white">${opt.label}</div>
+              <div class="text-[10px] font-mono-num text-zinc-400">${opt.kcal} kcal | ${opt.prot}g P</div>
+            </div>
+
+            <div class="flex items-center justify-between bg-bgCard border border-borderSubtle rounded-lg p-1">
+              <button onclick="updateBatchProtein('${opt.key}', -1)" class="w-7 h-7 rounded bg-bgElevated hover:bg-rose-500/20 text-zinc-300 font-mono-num font-bold">-</button>
+              <span class="text-sm font-mono-num font-bold text-emerald-400">${count} un</span>
+              <button onclick="updateBatchProtein('${opt.key}', 1)" class="w-7 h-7 rounded bg-bgElevated hover:bg-emerald-500/20 text-zinc-300 font-mono-num font-bold">+</button>
+            </div>
+
+            <div class="text-[10px] font-mono-num text-zinc-400 pt-1 border-t border-borderSubtle/60">
+              ${subLine}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render 4 Carb Cards
+      const carbContainer = document.getElementById('batch-carb-cards');
+      carbContainer.innerHTML = Object.values(CARB_OPTIONS).map(opt => {
+        const count = carbCounts[opt.key] || 0;
+        let rawText = '';
+        if (opt.key === 'arroz_feijao') {
+          rawText = `Cru: ${count * opt.rawRiceGrams}g arroz + ${count * opt.rawBeanGrams}g feijão`;
+        } else if (opt.key === 'batata') {
+          rawText = `Crua: <strong class="text-sky-400">${((count * opt.rawGrams) / 1000).toFixed(2).replace('.', ',')} kg</strong>`;
+        } else {
+          rawText = `Cru/Seco: <strong class="text-sky-400">${count * opt.rawGrams} g</strong>`;
+        }
+
+        return `
+          <div class="bg-bgMain border border-borderSubtle rounded-xl p-3 flex flex-col justify-between space-y-2.5">
+            <div>
+              <div class="text-xs font-bold text-white">${opt.label}</div>
+              <div class="text-[10px] font-mono-num text-zinc-400">${opt.kcal} kcal | ${opt.prot}g P</div>
+            </div>
+
+            <div class="flex items-center justify-between bg-bgCard border border-borderSubtle rounded-lg p-1">
+              <button onclick="updateBatchCarb('${opt.key}', -1)" class="w-7 h-7 rounded bg-bgElevated hover:bg-rose-500/20 text-zinc-300 font-mono-num font-bold">-</button>
+              <span class="text-sm font-mono-num font-bold text-sky-400">${count} un</span>
+              <button onclick="updateBatchCarb('${opt.key}', 1)" class="w-7 h-7 rounded bg-bgElevated hover:bg-sky-500/20 text-zinc-300 font-mono-num font-bold">+</button>
+            </div>
+
+            <div class="text-[10px] font-mono-num text-zinc-400 pt-1 border-t border-borderSubtle/60">
+              ${rawText}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const totalProtBoxes = Object.values(protCounts).reduce((a, b) => a + (b || 0), 0);
+      const totalCarbBoxes = Object.values(carbCounts).reduce((a, b) => a + (b || 0), 0);
+
+      document.getElementById('batch-prot-total-badge').textContent = `Total Proteínas: ${totalProtBoxes} marmitas`;
+
+      const syncBadge = document.getElementById('batch-carb-sync-badge');
+      if (totalProtBoxes === totalCarbBoxes) {
+        syncBadge.textContent = `Carbos alinhados: ${totalCarbBoxes}/${totalProtBoxes}`;
+        syncBadge.className = 'text-xs font-mono-num px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+      } else {
+        syncBadge.textContent = `Carbos: ${totalCarbBoxes} vs Proteínas: ${totalProtBoxes}`;
+        syncBadge.className = 'text-xs font-mono-num px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30';
+      }
+
+      // Calculate total raw meats & tuna cans
+      let totalRawMeatGrams = 0;
+      let totalTunaCans = protCounts.atum_ovos || 0;
+      Object.values(PROTEIN_OPTIONS).forEach(opt => {
+        if (!opt.isTunaCombo) {
+          totalRawMeatGrams += (protCounts[opt.key] || 0) * opt.rawGrams;
+        }
+      });
+
+      const totalBoxes = Math.max(totalProtBoxes, totalCarbBoxes);
+      const rawVeggiesKg = (totalBoxes * VEGGIE_SIDE.rawGrams) / 1000;
+
+      document.getElementById('batch-total-boxes').textContent = `${totalProtBoxes} un`;
+      document.getElementById('batch-total-raw-meat').textContent = `${(totalRawMeatGrams / 1000).toFixed(2).replace('.', ',')} kg`;
+      document.getElementById('batch-total-tuna-cans').textContent = totalTunaCans > 0 ? `+ ${totalTunaCans} lata(s) atum e ${totalTunaCans * 2} ovos` : `Sem atum no lote`;
+      document.getElementById('batch-raw-veggies').textContent = `${rawVeggiesKg.toFixed(2).replace('.', ',')} kg`;
+
+      // Build Consolidated Weekly Shopping List
+      const shoppingItems = [];
+
+      // 1. Proteins
+      Object.values(PROTEIN_OPTIONS).forEach(opt => {
+        const count = protCounts[opt.key] || 0;
+        if (count > 0) {
+          if (opt.isTunaCombo) {
+            shoppingItems.push({
+              id: `shop_prot_${opt.key}`,
+              category: 'Mercearia / Peixaria',
+              label: `Atum ralado/sólido em água: ${count} lata(s)`,
+              sub: `Para ${count} marmita(s) (acompanha +${count * 2} ovos já somados na cartela abaixo)`
+            });
+          } else {
+            const rawKg = ((count * opt.rawGrams) / 1000).toFixed(2).replace('.', ',');
+            shoppingItems.push({
+              id: `shop_prot_${opt.key}`,
+              category: 'Açougue (Peso Cru)',
+              label: `${opt.label.split('(')[0].trim()}: comprar ${rawKg} kg (cru)`,
+              sub: `Rende ${count} marmita(s) de ${opt.cookedGrams}g pronto`
+            });
+          }
+        }
+      });
+
+      // 2. Carbs
+      const batataCount = carbCounts.batata || 0;
+      if (batataCount > 0) {
+        const rawBatataKg = ((batataCount * CARB_OPTIONS.batata.rawGrams) / 1000).toFixed(2).replace('.', ',');
+        shoppingItems.push({
+          id: 'shop_carb_batata',
+          category: 'Hortifruti',
+          label: `Batata Inglesa: comprar ${rawBatataKg} kg (crua)`,
+          sub: `Para ${batataCount} marmita(s) de 280g pronta`
+        });
+      }
+
+      const arrozPureCount = carbCounts.arroz || 0;
+      const arrozFeijaoCount = carbCounts.arroz_feijao || 0;
+      const totalRawRiceG = arrozPureCount * CARB_OPTIONS.arroz.rawGrams + arrozFeijaoCount * CARB_OPTIONS.arroz_feijao.rawRiceGrams;
+      const totalRawBeanG = arrozFeijaoCount * CARB_OPTIONS.arroz_feijao.rawBeanGrams;
+
+      if (totalRawRiceG > 0) {
+        shoppingItems.push({
+          id: 'shop_carb_arroz',
+          category: 'Mercearia',
+          label: `Arroz Branco/Parboilizado: ${totalRawRiceG} g (peso cru)`,
+          sub: `Para ${arrozPureCount + arrozFeijaoCount} marmita(s) com base de arroz`
+        });
+      }
+      if (totalRawBeanG > 0) {
+        shoppingItems.push({
+          id: 'shop_carb_feijao',
+          category: 'Mercearia',
+          label: `Feijão (Carioca/Preto): ${totalRawBeanG} g (peso cru)`,
+          sub: `Rende ${arrozFeijaoCount * 100}g de feijão cozido (${arrozFeijaoCount} marmitas)`
+        });
+      }
+
+      const massaCount = carbCounts.massa || 0;
+      if (massaCount > 0) {
+        const rawMassaG = massaCount * CARB_OPTIONS.massa.rawGrams;
+        shoppingItems.push({
+          id: 'shop_carb_massa',
+          category: 'Mercearia',
+          label: `Macarrão / Massa seca: ${rawMassaG} g (crua)`,
+          sub: `Rende ${massaCount} marmita(s) de 160g cozida`
+        });
+      }
+
+      // 3. Veggies + Fixed Breakfast/Snack Staples
+      const totalEggsNeeded = 21 + totalTunaCans * 2;
+      shoppingItems.push(
+        {
+          id: 'shop_veggies',
+          category: 'Hortifruti',
+          label: `Legumes variados (cenoura, chuchu, abobrinha, brócolis): ${rawVeggiesKg.toFixed(2).replace('.', ',')} kg`,
+          sub: `150g cozidos por marmita (${totalBoxes} marmitas)`
+        },
+        {
+          id: 'shop_eggs',
+          category: 'Ovos & Laticínios',
+          label: `Ovos grandes: ${totalEggsNeeded} unidades`,
+          sub: `21 ovos do Café da Manhã (3/dia) ${totalTunaCans > 0 ? `+ ${totalTunaCans * 2} ovos das marmitas de Atum` : ''}`
+        },
+        {
+          id: 'shop_milk',
+          category: 'Ovos & Laticínios',
+          label: `Leite Desnatado: 1,4 L (2 caixas de 1L)`,
+          sub: `200ml por dia para o Lanche da Tarde com Whey`
+        },
+        {
+          id: 'shop_whey',
+          category: 'Suplementos & Cereais',
+          label: `Whey Protein 70% Soldiers: 280 g na semana`,
+          sub: `40g por dia no Lanche da Tarde`
+        },
+        {
+          id: 'shop_oats',
+          category: 'Suplementos & Cereais',
+          label: `Aveia em Flocos: 210 g`,
+          sub: `30g por dia no Lanche da Tarde`
+        },
+        {
+          id: 'shop_fruits',
+          category: 'Hortifruti',
+          label: `14 Frutas médias (7 Bananas + 7 Maçãs/Bananas)`,
+          sub: `1 no Café da Manhã + 1 banana no Lanche com Whey (7 dias)`
+        },
+        {
+          id: 'shop_bread',
+          category: 'Padaria',
+          label: `1 pacote de Pão Integral (14 fatias) ou 7 Pães Franceses`,
+          sub: `Café da Manhã diário`
+        }
+      );
+
+      const shopContainer = document.getElementById('shopping-list-container');
+      shopContainer.innerHTML = shoppingItems.map(item => {
+        const checked = !!appState.shoppingChecked[item.id];
+        return `
+          <div onclick="toggleShoppingItem('${item.id}')"
+            class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
+              checked
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-zinc-400'
+                : 'bg-bgMain border-borderSubtle hover:border-zinc-600 text-white'
+            }">
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 ${
+                checked ? 'bg-emerald-500 text-zinc-950 font-bold' : 'border border-zinc-600'
+              }">
+                ${checked ? '✓' : ''}
+              </div>
+              <div>
+                <div class="text-xs sm:text-sm font-semibold ${checked ? 'line-through text-zinc-400' : 'text-white'}">${item.label}</div>
+                <div class="text-[11px] font-mono-num text-zinc-400">${item.sub}</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono-num px-2 py-0.5 rounded bg-bgCard border border-borderSubtle text-zinc-400 hidden sm:inline">
+              ${item.category}
+            </span>
+          </div>
+        `;
+      }).join('');
     }
 
-    function closeGoalsModal() {
-      document.getElementById('modal-edit-goals').classList.add('hidden');
-    }
-
-    function saveGoals(e) {
-      e.preventDefault();
-      appState.goals.kcal = parseInt(document.getElementById('goal-input-kcal').value, 10) || 2050;
-      appState.goals.prot = parseInt(document.getElementById('goal-input-prot').value, 10) || 170;
-      appState.goals.water = parseInt(document.getElementById('goal-input-water').value, 10) || 3000;
-      appState.profile.height = parseFloat(document.getElementById('goal-input-height').value) || 1.75;
+    function updateBatchProtein(key, delta) {
+      const current = appState.batchCalculator.proteins[key] || 0;
+      appState.batchCalculator.proteins[key] = Math.max(0, current + delta);
       saveState();
-      closeGoalsModal();
-      renderAll();
-      showToast('Metas diárias atualizadas!');
+      renderBatchCalculatorAndShopping();
     }
 
-    function restoreDefaultTemplates() {
-      appState.mealTemplates = getDefaultMealTemplates();
-      appState.days[currentSelectedDate].meals = JSON.parse(JSON.stringify(appState.mealTemplates)).map(m => ({
-        ...m,
-        checked: false
-      }));
+    function updateBatchCarb(key, delta) {
+      const current = appState.batchCalculator.carbs[key] || 0;
+      appState.batchCalculator.carbs[key] = Math.max(0, current + delta);
       saveState();
-      closeGoalsModal();
-      renderAll();
-      showToast('Cardápio padrão restaurado!');
+      renderBatchCalculatorAndShopping();
+    }
+
+    function applyBatchPreset10() {
+      appState.batchCalculator.proteins = {
+        frango: 3,
+        guisado: 2,
+        figado_bovino: 1,
+        figado_galinha: 1,
+        atum_ovos: 1,
+        sobrecoxa: 1,
+        musculo: 1,
+        lombo: 0
+      };
+      appState.batchCalculator.carbs = {
+        batata: 4,
+        arroz: 2,
+        arroz_feijao: 2,
+        massa: 2
+      };
+      saveState();
+      renderBatchCalculatorAndShopping();
+      showToast('Preset de 10 marmitas (Seg-Sex) carregado!', 'emerald');
+    }
+
+    function applyBatchPreset14() {
+      appState.batchCalculator.proteins = {
+        frango: 4,
+        guisado: 3,
+        figado_bovino: 2,
+        figado_galinha: 1,
+        atum_ovos: 1,
+        sobrecoxa: 1,
+        musculo: 1,
+        lombo: 1
+      };
+      appState.batchCalculator.carbs = {
+        batata: 6,
+        arroz: 3,
+        arroz_feijao: 3,
+        massa: 2
+      };
+      saveState();
+      renderBatchCalculatorAndShopping();
+      showToast('Preset de 14 marmitas (7 dias) carregado!', 'sky');
+    }
+
+    function toggleShoppingItem(id) {
+      appState.shoppingChecked[id] = !appState.shoppingChecked[id];
+      saveState();
+      renderBatchCalculatorAndShopping();
+    }
+
+    function clearShoppingChecks() {
+      appState.shoppingChecked = {};
+      saveState();
+      renderBatchCalculatorAndShopping();
+      showToast('Checks da lista de compras limpos');
     }
 
     // ==========================================
-    // TAB 2: WORKOUTS & WEIGHT TRACKER
+    // TAB 3: PESO, HISTÓRICO & METAS
     // ==========================================
-    function renderWorkoutsAndWeight() {
-      // Musculação 4x
-      const muscArr = appState.weeklyWorkouts.musculacao;
-      const cardioArr = appState.weeklyWorkouts.cardio;
+    function getLatestWeightEntry() {
+      if (!appState.weightLog || appState.weightLog.length === 0) return null;
+      const sorted = [...appState.weightLog].sort((a, b) => a.date.localeCompare(b.date));
+      return sorted[sorted.length - 1];
+    }
 
-      const muscContainer = document.getElementById('musculacao-checkboxes');
-      muscContainer.innerHTML = muscArr.map((done, i) => `
-        <button type="button" onclick="toggleWorkout('musculacao', ${i})"
-          class="p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
-            done
-              ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300'
-              : 'bg-bgCard border-borderSubtle text-slate-400 hover:border-slate-600'
-          }">
-          <div>
-            <div class="text-xs font-bold text-white">Treino ${i + 1}</div>
-            <div class="text-[10px] font-mono-num">${done ? 'Concluído' : 'Pendente'}</div>
-          </div>
-          <div class="w-5 h-5 rounded-md flex items-center justify-center ${done ? 'bg-emerald-500 text-slate-950' : 'border border-slate-600'}">
-            ${done ? '✓' : ''}
-          </div>
-        </button>
-      `).join('');
-
-      const cardioContainer = document.getElementById('cardio-checkboxes');
-      cardioContainer.innerHTML = cardioArr.map((done, i) => `
-        <button type="button" onclick="toggleWorkout('cardio', ${i})"
-          class="p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
-            done
-              ? 'bg-amber-500/15 border-amber-500/50 text-amber-300'
-              : 'bg-bgCard border-borderSubtle text-slate-400 hover:border-slate-600'
-          }">
-          <div>
-            <div class="text-xs font-bold text-white">Cárdio ${i + 1}</div>
-            <div class="text-[10px] font-mono-num">30 min</div>
-          </div>
-          <div class="w-5 h-5 rounded-md flex items-center justify-center ${done ? 'bg-amber-500 text-slate-950' : 'border border-slate-600'}">
-            ${done ? '✓' : ''}
-          </div>
-        </button>
-      `).join('');
-
-      const muscDone = muscArr.filter(Boolean).length;
-      const cardioDone = cardioArr.filter(Boolean).length;
-      const totalDone = muscDone + cardioDone;
-
-      document.getElementById('musc-count-label').textContent = `${muscDone}/4`;
-      document.getElementById('cardio-count-label').textContent = `${cardioDone}/3`;
-      document.getElementById('weekly-workout-badge').textContent = `${totalDone}/7 Concluídos`;
-      document.getElementById('weekly-workout-bar').style.width = `${Math.round((totalDone / 7) * 100)}%`;
-
-      // Weight Tracker
+    function renderWeightAndHistoryTab() {
       const weightInputDate = document.getElementById('weight-input-date');
       if (!weightInputDate.value) weightInputDate.value = getTodayISO();
 
@@ -1443,19 +2031,16 @@
       const initialW = appState.profile.initialWeight;
       const latestW = sortedWeights.length > 0 ? sortedWeights[sortedWeights.length - 1].weight : initialW;
       const diffW = latestW - initialW;
-      const bmi = latestW / (appState.profile.height * appState.profile.height);
 
       document.getElementById('weight-stat-initial').textContent = `${initialW.toFixed(1)} kg`;
       document.getElementById('weight-stat-current').textContent = `${latestW.toFixed(1)} kg`;
       const diffEl = document.getElementById('weight-stat-diff');
       diffEl.textContent = `${diffW > 0 ? '+' : ''}${diffW.toFixed(1)} kg`;
       diffEl.className = diffW <= 0 ? 'text-emerald-400' : 'text-amber-400';
-      document.getElementById('weight-stat-bmi').textContent = bmi.toFixed(1);
       document.getElementById('chart-points-label').textContent = `${sortedWeights.length} registro(s)`;
 
       renderWeightSVGChart(sortedWeights);
 
-      // Render history list (newest first)
       const histContainer = document.getElementById('weight-history-list');
       const reversed = [...sortedWeights].reverse();
       histContainer.innerHTML = reversed.map(entry => {
@@ -1464,12 +2049,12 @@
         return `
           <div class="flex items-center justify-between bg-bgMain border border-borderSubtle rounded-xl px-3.5 py-2 text-xs">
             <div class="flex items-center gap-3">
-              <span class="font-mono-num text-slate-400">${dateFormatted}</span>
+              <span class="font-mono-num text-zinc-400">${dateFormatted}</span>
               <span class="font-mono-num font-bold text-white text-sm">${entry.weight.toFixed(1)} kg</span>
-              ${entry.note ? `<span class="text-slate-400">• ${entry.note}</span>` : ''}
+              ${entry.note ? `<span class="text-zinc-400">• ${entry.note}</span>` : ''}
             </div>
             ${sortedWeights.length > 1 ? `
-              <button onclick="deleteWeightEntry('${entry.id}')" class="text-slate-500 hover:text-rose-400 transition">
+              <button onclick="deleteWeightEntry('${entry.id}')" class="text-zinc-500 hover:text-rose-400 transition">
                 <i data-lucide="Trash2" class="w-4 h-4"></i>
               </button>
             ` : ''}
@@ -1477,29 +2062,60 @@
         `;
       }).join('');
 
+      // Populate Goals Form
+      document.getElementById('goal-input-kcal').value = appState.goals.kcal;
+      document.getElementById('goal-input-prot').value = appState.goals.prot;
+      document.getElementById('goal-input-water').value = appState.goals.water;
+
+      renderDailyHistoryTable();
       lucide.createIcons();
     }
 
-    function getLatestWeightEntry() {
-      if (!appState.weightLog || appState.weightLog.length === 0) return null;
-      const sorted = [...appState.weightLog].sort((a, b) => a.date.localeCompare(b.date));
-      return sorted[sorted.length - 1];
+    function renderDailyHistoryTable() {
+      const tbody = document.getElementById('daily-history-table-body');
+      if (!tbody) return;
+
+      const dates = Object.keys(appState.days).sort((a, b) => b.localeCompare(a));
+      const { kcal: goalKcal } = appState.goals;
+
+      tbody.innerHTML = dates.map(d => {
+        const totals = getDaySummaryTotals(d);
+        const parts = d.split('-');
+        const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+        let statusBadge = '';
+        if (totals.kcal === 0 && totals.water === 0) {
+          statusBadge = `<span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-borderSubtle">Em andamento</span>`;
+        } else if (totals.kcal >= goalKcal * 0.85 && totals.kcal <= goalKcal * 1.08) {
+          statusBadge = `<span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">No Alvo</span>`;
+        } else if (totals.kcal > goalKcal * 1.08) {
+          statusBadge = `<span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">Acima</span>`;
+        } else {
+          statusBadge = `<span class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">Em andamento</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-bgMain/60 transition">
+            <td class="py-2.5 px-3 font-semibold text-white">${formattedDate}</td>
+            <td class="py-2.5 px-3 text-emerald-400">${totals.kcal} / ${goalKcal} kcal</td>
+            <td class="py-2.5 px-3 text-sky-400">${totals.prot}g</td>
+            <td class="py-2.5 px-3 text-zinc-300">${totals.water} ml</td>
+            <td class="py-2.5 px-3 text-zinc-300">${totals.checkedCount}/4</td>
+            <td class="py-2.5 px-3">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-right">
+              <button onclick="openDateFromHistory('${d}')" class="text-xs px-2.5 py-1 rounded-lg bg-bgElevated hover:bg-emerald-500/20 text-zinc-300 hover:text-emerald-300 border border-borderSubtle transition">
+                Abrir Dia
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    function toggleWorkout(type, index) {
-      appState.weeklyWorkouts[type][index] = !appState.weeklyWorkouts[type][index];
-      saveState();
-      renderWorkoutsAndWeight();
-    }
-
-    function resetWeeklyWorkouts() {
-      appState.weeklyWorkouts = {
-        musculacao: [false, false, false, false],
-        cardio: [false, false, false]
-      };
-      saveState();
-      renderWorkoutsAndWeight();
-      showToast('Check semanal de treino resetado!', 'blue');
+    function openDateFromHistory(dateStr) {
+      currentSelectedDate = dateStr;
+      ensureDayExists(currentSelectedDate);
+      switchTab('diario');
     }
 
     function handleAddWeightSubmit(e) {
@@ -1519,7 +2135,7 @@
       document.getElementById('weight-input-note').value = '';
       saveState();
       renderAll();
-      showToast(`Peso registrado: ${weight.toFixed(1)} kg`, 'blue');
+      showToast(`Peso registrado: ${weight.toFixed(1)} kg`, 'sky');
     }
 
     function deleteWeightEntry(id) {
@@ -1560,212 +2176,60 @@
       const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
 
       const circlesHTML = points.map(p => `
-        <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#10b981" stroke="#0b0f17" stroke-width="2" />
-        <text x="${p.x}" y="${p.y - 10}" text-anchor="middle" fill="#e2e8f0" font-size="11" font-family="JetBrains Mono">${p.weight.toFixed(1)}</text>
+        <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#0ea5e9" stroke="#09090b" stroke-width="2" />
+        <text x="${p.x}" y="${p.y - 10}" text-anchor="middle" fill="#f4f4f5" font-size="11" font-family="JetBrains Mono">${p.weight.toFixed(1)}</text>
       `).join('');
 
       container.innerHTML = `
         <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
-          <line x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}" stroke="#263042" stroke-dasharray="4 4" />
-          <line x1="${padX}" y1="${padY}" x2="${width - padX}" y2="${padY}" stroke="#263042" stroke-dasharray="4 4" />
-          ${points.length > 1 ? `<polyline fill="none" stroke="#10b981" stroke-width="2.5" points="${polylinePoints}" />` : ''}
+          <line x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}" stroke="#27272a" stroke-dasharray="4 4" />
+          <line x1="${padX}" y1="${padY}" x2="${width - padX}" y2="${padY}" stroke="#27272a" stroke-dasharray="4 4" />
+          ${points.length > 1 ? `<polyline fill="none" stroke="#0ea5e9" stroke-width="2.5" points="${polylinePoints}" />` : ''}
           ${circlesHTML}
         </svg>
       `;
     }
 
-    // ==========================================
-    // TAB 3: BATCH MARMITA CALCULATOR & GROCERY LIST
-    // ==========================================
-    function renderBatchCalculatorAndShopping() {
-      const batch = appState.batchCalculator;
-      const cardsContainer = document.getElementById('batch-protein-cards');
-
-      cardsContainer.innerHTML = Object.values(PROTEIN_OPTIONS).map(opt => {
-        const count = batch[opt.key] || 0;
-        const totalCookedG = count * opt.cookedGrams;
-        const totalRawG = count * opt.rawGrams;
-        return `
-          <div class="bg-bgMain border border-borderSubtle rounded-xl p-3.5 flex flex-col justify-between space-y-3">
-            <div>
-              <div class="text-xs font-bold text-white">${opt.label}</div>
-              <div class="text-[11px] font-mono-num text-slate-400">${opt.cookedGrams}g pronto / marmita</div>
-            </div>
-
-            <div class="flex items-center justify-between bg-bgCard border border-borderSubtle rounded-xl p-1">
-              <button onclick="updateBatchCount('${opt.key}', -1)" class="w-8 h-8 rounded-lg bg-bgElevated hover:bg-rose-500/20 text-slate-300 font-mono-num font-bold">-</button>
-              <span class="text-base font-mono-num font-bold text-emerald-400">${count} un</span>
-              <button onclick="updateBatchCount('${opt.key}', 1)" class="w-8 h-8 rounded-lg bg-bgElevated hover:bg-emerald-500/20 text-slate-300 font-mono-num font-bold">+</button>
-            </div>
-
-            <div class="pt-2 border-t border-borderSubtle/60 text-[11px] font-mono-num space-y-0.5">
-              <div class="flex justify-between text-slate-400">
-                <span>Comprar Cru:</span>
-                <strong class="text-amber-400">${(totalRawG / 1000).toFixed(2).replace('.', ',')} kg</strong>
-              </div>
-              <div class="flex justify-between text-slate-400">
-                <span>Total Pronto:</span>
-                <strong class="text-slate-200">${totalCookedG} g</strong>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      const totalBoxes = Object.values(batch).reduce((acc, v) => acc + (v || 0), 0);
-      // 270g cooked potato per box * 1.15 raw conversion factor = ~310g raw per box
-      const rawPotatoKg = (totalBoxes * 310) / 1000;
-      const rawVeggiesKg = (totalBoxes * 165) / 1000;
-
-      document.getElementById('batch-total-boxes').textContent = `${totalBoxes} un`;
-      document.getElementById('batch-raw-potato').textContent = `${rawPotatoKg.toFixed(2).replace('.', ',')} kg`;
-      document.getElementById('batch-cooked-potato').textContent = `(${totalBoxes * 270}g prontas no total)`;
-      document.getElementById('batch-raw-veggies').textContent = `${rawVeggiesKg.toFixed(2).replace('.', ',')} kg`;
-
-      // Build Shopping List Items
-      const shoppingItems = [];
-
-      Object.values(PROTEIN_OPTIONS).forEach(opt => {
-        const count = batch[opt.key] || 0;
-        if (count > 0) {
-          const rawKg = ((count * opt.rawGrams) / 1000).toFixed(2).replace('.', ',');
-          shoppingItems.push({
-            id: `shop_${opt.key}`,
-            category: 'Açougue (Peso Cru)',
-            label: `${opt.label}: comprar ${rawKg} kg cru`,
-            sub: `Para ${count} marmita(s) de ${opt.cookedGrams}g pronto`
-          });
-        }
-      });
-
-      shoppingItems.push(
-        {
-          id: 'shop_potato',
-          category: 'Hortifruti',
-          label: `Batata Inglesa: ${rawPotatoKg.toFixed(2).replace('.', ',')} kg`,
-          sub: `270g pronta por marmita (${totalBoxes} marmitas)`
-        },
-        {
-          id: 'shop_veggies',
-          category: 'Hortifruti',
-          label: `Legumes variados (cenoura, chuchu, abobrinha, brócolis): ${rawVeggiesKg.toFixed(2).replace('.', ',')} kg`,
-          sub: `150g cozidos por marmita para dar volume`
-        },
-        {
-          id: 'shop_fruits',
-          category: 'Hortifruti',
-          label: `14 Frutas médias (Bananas / Maçãs)`,
-          sub: `2 por dia (Café da Manhã + Lanche com Whey)`
-        },
-        {
-          id: 'shop_eggs',
-          category: 'Mercearia & Laticínios',
-          label: `21 Ovos grandes (aprox. 2 dúzias)`,
-          sub: `3 ovos inteiros por manhã (7 dias)`
-        },
-        {
-          id: 'shop_whey',
-          category: 'Suplementos & Grãos',
-          label: `Whey Protein 70% Soldiers (uso: 280g na semana)`,
-          sub: `40g por dia no lanche da tarde`
-        },
-        {
-          id: 'shop_oats',
-          category: 'Suplementos & Grãos',
-          label: `Aveia em flocos: 280g a 300g`,
-          sub: `40g por dia no mingau/vitamina`
-        },
-        {
-          id: 'shop_bread',
-          category: 'Padaria',
-          label: `1 pacote de Pão Integral (14 fatias) ou 7 Pães Franceses`,
-          sub: `Café da manhã diário`
-        }
-      );
-
-      const shopContainer = document.getElementById('shopping-list-container');
-      shopContainer.innerHTML = shoppingItems.map(item => {
-        const checked = !!appState.shoppingChecked[item.id];
-        return `
-          <div onclick="toggleShoppingItem('${item.id}')"
-            class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
-              checked
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-slate-400'
-                : 'bg-bgMain border-borderSubtle hover:border-slate-600 text-white'
-            }">
-            <div class="flex items-center gap-3">
-              <div class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 ${
-                checked ? 'bg-emerald-500 text-slate-950 font-bold' : 'border border-slate-600'
-              }">
-                ${checked ? '✓' : ''}
-              </div>
-              <div>
-                <div class="text-xs sm:text-sm font-semibold ${checked ? 'line-through text-slate-400' : 'text-white'}">${item.label}</div>
-                <div class="text-[11px] font-mono-num text-slate-400">${item.sub}</div>
-              </div>
-            </div>
-            <span class="text-[10px] font-mono-num px-2 py-0.5 rounded bg-bgCard border border-borderSubtle text-slate-400 hidden sm:inline">
-              ${item.category}
-            </span>
-          </div>
-        `;
-      }).join('');
+    function saveGoals(e) {
+      e.preventDefault();
+      appState.goals.kcal = parseInt(document.getElementById('goal-input-kcal').value, 10) || 2050;
+      appState.goals.prot = parseInt(document.getElementById('goal-input-prot').value, 10) || 170;
+      appState.goals.water = parseInt(document.getElementById('goal-input-water').value, 10) || 3000;
+      saveState();
+      renderAll();
+      showToast('Metas atualizadas com sucesso!', 'emerald');
     }
 
-    function updateBatchCount(proteinKey, delta) {
-      const current = appState.batchCalculator[proteinKey] || 0;
-      appState.batchCalculator[proteinKey] = Math.max(0, current + delta);
+    function restoreDefaultTemplates() {
+      appState.mealTemplates = getDefaultMealTemplates();
+      appState.days[currentSelectedDate].meals = JSON.parse(JSON.stringify(appState.mealTemplates)).map(m => ({
+        ...m,
+        checked: false
+      }));
       saveState();
-      renderBatchCalculatorAndShopping();
-    }
-
-    function setBatchPreset(frango, guisado, figBov, figGal) {
-      appState.batchCalculator = {
-        frango,
-        guisado,
-        figado_bovino: figBov,
-        figado_galinha: figGal
-      };
-      saveState();
-      renderBatchCalculatorAndShopping();
-      showToast('Lote de marmitas atualizado!', 'emerald');
-    }
-
-    function toggleShoppingItem(id) {
-      appState.shoppingChecked[id] = !appState.shoppingChecked[id];
-      saveState();
-      renderBatchCalculatorAndShopping();
-    }
-
-    function clearShoppingChecks() {
-      appState.shoppingChecked = {};
-      saveState();
-      renderBatchCalculatorAndShopping();
-      showToast('Lista de compras desmarcada');
+      renderAll();
+      showToast('Cardápio original restaurado!', 'amber');
     }
 
     // ==========================================
-    // TAB SWITCHING
+    // TAB SWITCHING & JSON BACKUP
     // ==========================================
     function switchTab(tabName) {
-      const tabs = ['diario', 'treino', 'marmitas'];
+      const tabs = ['diario', 'marmitas', 'historico'];
       tabs.forEach(t => {
         const content = document.getElementById(`tab-content-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
         if (t === tabName) {
           content.classList.remove('hidden');
-          btn.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition bg-emerald-500 text-slate-950 shadow';
+          btn.className = 'py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition bg-emerald-500 text-zinc-950 shadow';
         } else {
           content.classList.add('hidden');
-          btn.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-slate-300 hover:bg-bgElevated';
+          btn.className = 'py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-zinc-300 hover:bg-bgElevated';
         }
       });
       renderAll();
     }
 
-    // ==========================================
-    // EXPORT & IMPORT JSON BACKUP
-    // ==========================================
     function exportBackupJSON() {
       const dataStr = JSON.stringify(appState, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
@@ -1777,7 +2241,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast('Backup JSON exportado com sucesso!', 'blue');
+      showToast('Backup JSON exportado!', 'sky');
     }
 
     function importBackupJSON(event) {
@@ -1792,30 +2256,29 @@
             ensureDayExists(currentSelectedDate);
             saveState();
             renderAll();
-            showToast('Backup JSON importado com sucesso!', 'emerald');
+            showToast('Backup JSON restaurado com sucesso!', 'emerald');
           } else {
             showToast('Arquivo JSON inválido.', 'amber');
           }
         } catch (err) {
-          showToast('Erro ao ler arquivo JSON.', 'amber');
+          showToast('Erro ao importar JSON.', 'amber');
         }
       };
       reader.readAsText(file);
       event.target.value = '';
     }
 
-    // Master Render
     function renderAll() {
-      renderDateHeaderAndStrip();
-      renderTopDashboard();
+      renderHeaderAndTopDashboard();
       renderMealsList();
       renderExtrasList();
-      renderWorkoutsAndWeight();
+      renderWeeklyWorkoutsPanel();
       renderBatchCalculatorAndShopping();
+      renderWeightAndHistoryTab();
     }
 
-    // Initialize App on Load
     window.onload = function() {
+      setupNativePWAIcon();
       loadState();
       renderAll();
       lucide.createIcons();
